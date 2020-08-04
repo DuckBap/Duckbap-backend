@@ -14,7 +14,7 @@ type Funding struct {
 	StartDate time.Time `gorm:"type:date; not null"`
 	EndDate time.Time `gorm:"type:date; not null"`
 	MainImgUrl string `gorm:"varchar(255); unique; not null"`
-	ArtistId uint `gorm:"not null"`
+	ArtistID uint `gorm:"not null"`
 	SalesAmount uint `gorm:"default:0"`
 	FundingImgs []FundingImg
 	Receipts []Receipt
