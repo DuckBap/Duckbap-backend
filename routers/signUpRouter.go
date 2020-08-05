@@ -1,7 +1,10 @@
 package routers
 
 import (
+	"github.com/DuckBap/Duckbap-backend/controllers"
 	"github.com/gin-gonic/gin"
 )
 
-func SignUp
+func SignUpRouter(router *gin.Engine) {
+	router.POST("/sign-up", controllers.SignUp)
+}
