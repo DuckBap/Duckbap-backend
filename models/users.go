@@ -14,4 +14,5 @@ type User struct {
 	FavoriteArtist uint `gorm:"not null"`
 	Fundings []Funding `gorm:"foreignKey:SellerID"`
 	Receipts []Receipt `gorm:"foreignKey:SellerID"`
+	Artist Artist `gorm:"foreignKey:FavoriteArtist"`
 }
