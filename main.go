@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
+	"github.com/DuckBap/Duckbap-backend/routers"
 	"github.com/gin-gonic/gin"
 	//"github.com/DuckBap/duckBap/routers"
 	"gorm.io/driver/mysql"
@@ -19,6 +20,7 @@ func main() {
 		log.Println(err)
 	}
 	configs.DB.AutoMigrate(&models.User{}, &models.Funding{}, &models.FundingImg{},&models.Artist{}, &models.Receipt{},  &models.Entertainment{})
+	routers.SignUpRouter(r)
 	//configs.DB.AutoMigrate(&models.Entertainment{})
 	//configs.DB.AutoMigrate(&models.Artist{})//, &models.Entertainment{})
 	//configs.DB.AutoMigrate(&models.User{})

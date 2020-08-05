@@ -7,10 +7,14 @@ import (
 )
 
 func SignUp(c *gin.Context) {
-	user, err := models.SignUpUser(c)
-	if err != nil {
-		c.JSON(http.StatusForbidden, err)
-		return
+	user, errorValue, define := models.SignUpUser(c)
+	if define == 1 {
+		c.JSON(http.StatusAlreadyReported, errorValue)
+	} else if define == 2 {
+		c.JSON(http.StatusFailedDependency, errorValue)
+	} else if define == 3 {
+		c.JSON(http.StatusNotFound, errorValue)
+	} else {
+		c.JSON(http.StatusOK, user)
 	}
-	c.JSON(http.StatusOK, user)
 }
