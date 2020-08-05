@@ -19,6 +19,11 @@ func main() {
 		log.Println(err)
 	}
 	configs.DB.AutoMigrate(&models.User{}, &models.Funding{}, &models.FundingImg{},&models.Artist{}, &models.Receipt{},  &models.Entertainment{})
+	//configs.DB.AutoMigrate(&models.Entertainment{})
+	//configs.DB.AutoMigrate(&models.Artist{})//, &models.Entertainment{})
+	//configs.DB.AutoMigrate(&models.User{})
+	//configs.DB.AutoMigrate(&models.Funding{})
+	//configs.DB.AutoMigrate(&models.Receipt{}, &models.FundingImg{})
 
 	r.Run(":8080")
 }

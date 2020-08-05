@@ -8,6 +8,6 @@ type Receipt struct {
 	BuyerID uint `gorm:"not null"`
 	FundingID uint `gorm:"not null"`
 	Amount uint `gorm:"not null"`
-	Funding []Funding
+	Funding Funding
 	User User `gorm:"foreignKey:BuyerID"`
 }

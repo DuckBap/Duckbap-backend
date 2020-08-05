@@ -7,6 +7,6 @@ type Artist struct {
 	EntertainmentID uint `gorm:"not null"`
 	Name string `gorm:"varchar(60); not null"`
 	ImgUrl string `gorm:"varchar(255); unique; not null"`
-	Entertainment Entertainment
 	Users []User `gorm:"many2many:bookmarks"`
+	Entertainment Entertainment
 }
