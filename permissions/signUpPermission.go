@@ -2,9 +2,10 @@ package permissions
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
-	"github.com/DuckBap/Duckbap-backend/models"
-	"gorm.io/gorm"
+	"net/http"
+	"reflect"
 	"strings"
 )
 
@@ -13,104 +14,131 @@ type ErrorStruct struct {
 	Message	string
 }
 
-func	findContainPart(message string) (string, uint) {
-	var	returnString	string
-	var	defineValue		uint
+func	changeString(str string) string {
+	var index	int
+	var checker bool
+	var newStr	string
+
+	for idx,rune := range str {
+		if idx != 0 && (rune >= 'A' && rune <= 'Z') {
+			index = idx
+			checker = true
+			break
+		}
+	}
+	if checker {
+		newStr = str[:index] + "_" + str[index:]
+	} else {
+		newStr = str
+	}
+	newStr = strings.ToLower(newStr)
+	return newStr
+}
+
+func	analyzeErrorMessage(message string) string {
+	var	errorPoint	string
 
 	if strings.Contains(message, "users.user_name") {
-		returnString = "user_name"
-		defineValue = 1
+		errorPoint = "user_name"
 	} else if strings.Contains(message, "users.email") {
-		returnString = "email"
-		defineValue = 1
+		errorPoint = "email"
 	} else if strings.Contains(message, "users.nick_name") {
-		returnString = "nick_name"
-		defineValue = 1
+		errorPoint = "nick_name"
 	} else if strings.Contains(message, "favorite_artist") {
-		returnString = "favorite_artist"
-		defineValue = 2
+		errorPoint = "favorite_artist"
 	}
-	return returnString, defineValue
+	return errorPoint
 }
 
-func	findErrorStruct(err error) (ErrorStruct, error) {
+func	makeErrorStruct(err error) (ErrorStruct, error) {
 	var	errorStruct	ErrorStruct
-	var	newError	error
+	var	marshalingError	error
 
-	errorJson,marshalingError := json.Marshal(&err)
+	errorJson,marshalError := json.Marshal(&err)
 	unmarshalError := json.Unmarshal(errorJson, &errorStruct)
-	if marshalingError != nil {
-		newError = marshalingError
+	if marshalError != nil {
+		marshalingError = marshalError
 	} else if unmarshalError != nil {
-		newError = unmarshalError
+		marshalingError = unmarshalError
 	}
-	return errorStruct, newError
+	return errorStruct, marshalingError
 }
 
-func	MakeErrorMessage(tx *gorm.DB) (string, uint){
-	var errorPart 	string
-	var define		uint
+func	FindErrorPoint(err error) (string, int){
+	var errorPoint 	string
+	var httpCode	int
 
-	if tx.Error != nil {
-		errorStruct, err := findErrorStruct(tx.Error)
-		if err != nil {
-			errorPart = "json marshaling error"
-			define = 3
-			return errorPart, define
-		}
-		errorPart,define = findContainPart(errorStruct.Message)
-		return errorPart, define
-	}
-	return errorPart, define
-}
-
-func	checkAlreadyValue(query string, value interface{}, model interface{}) bool {
-	var	count	int64
-
-	if query == "favorite_artist = ?" {
-		configs.DB.Model(&models.Artist{}).Where("id = ?", value).Count(&count)
-
+	errorStruct, marshalingError := makeErrorStruct(err)
+	if marshalingError != nil {
+		errorPoint = "json marshaling error"
 	} else {
+		errorPoint = analyzeErrorMessage(errorStruct.Message)
+	}
+	if errorStruct.Number == 1062 {
+		httpCode = http.StatusAlreadyReported
+	} else if errorStruct.Number == 1452 {
+		httpCode = http.StatusFailedDependency
+	} else {
+		httpCode = http.StatusNotFound
+	}
+	return errorPoint, httpCode
+}
+
+func	IsAlreadyValuePresent(model interface{}, query string, value interface{}) bool {
+	var	count			int64
+	var	changeChecker	bool
+
+	query = changeString(query)
+	if query == "favorite_artist" {
+		configs.DB.Model(model).Where("id = ?", value).Count(&count)
+		changeChecker = true
+	} else {
+		query += " = ?"
 		configs.DB.Model(model).Where(query, value).Count(&count)
 	}
-	if count != 0 {
+	if !changeChecker && count != 0 {
+		return true
+	} else if changeChecker && count == 0 {
 		return true
 	}
 	return false
 }
 
-func	FindValueAlreadyPresent(user models.User) (string, uint, bool) {
-	var	alreadyPresentValue string
+func	IsEmptyValue(dataStruct interface{}) (string, int, bool){
+	var	emptyPoint		string
+	var emptyBool		bool
+	var elementString	string
+	var elementLen		int
+	var	httpCode		int
+	var	model			interface{}
 
-	if checkAlreadyValue("user_name = ?", user.UserName, &user) {
-		alreadyPresentValue = "user_name"
-	} else if checkAlreadyValue("email = ?", user.Email, &user) {
-		alreadyPresentValue = "email"
-	} else if checkAlreadyValue("nick_name = ?", user.NickName, &user) {
-		alreadyPresentValue = "nick_name"
-	} else if checkAlreadyValue("favorite_artist = ?", user.FavoriteArtist, &user){
-		alreadyPresentValue = "favorite_artist"
-	} else {
-		return alreadyPresentValue, 0, false
+	target := reflect.ValueOf(dataStruct)
+	elements := target.Elem()
+	httpCode = http.StatusOK
+	for idx := 0; idx < elements.NumField(); idx++ {
+		elementString = fmt.Sprintf("%v",elements.Field(idx).Interface())
+		elementLen = len(elementString)
+		elementType := elements.Type().Field(idx).Type.String()
+		emptyPoint = elements.Type().Field(idx).Name
+		if elementType == "uint" || elementType == "string" {
+			if elementLen == 0 || elementString == "0" {
+				httpCode = http.StatusBadRequest
+				emptyBool = true
+				break
+			} else {
+				if emptyPoint == "FavoriteArtist" {
+					model = elements.Field(elements.NumField() - 1).Interface()
+				} else {
+					model = dataStruct
+				}
+				if IsAlreadyValuePresent(model, emptyPoint, elements.Field(idx).Interface()) {
+					httpCode = http.StatusAlreadyReported
+					emptyBool = true
+					break
+				}
+			}
+		}
 	}
-	return alreadyPresentValue, 1, true
-}
-
-func	CheckInputValue(user models.User) (string, uint, bool) {
-	var	errorValue	string
-	if user.UserName == "" {
-		errorValue = "user_name"
-	} else if user.Password == "" {
-		errorValue = "password"
-	} else if user.NickName == "" {
-		errorValue = "nick_name"
-	} else if user.Email == "" {
-		errorValue = "email"
-	} else if user.FavoriteArtist == 0 {
-		errorValue = "favorite_artist"
-		return errorValue, 2, true
-	} else {
-		return errorValue, 0, false
-	}
-	return errorValue, 1, true
+	emptyPoint = changeString(emptyPoint)
+	return emptyPoint, httpCode, emptyBool
 }

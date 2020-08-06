@@ -6,5 +6,6 @@ import (
 )
 
 func SignUpRouter(router *gin.Engine) {
+	router.GET("/sign-up", controllers.ShowArtists)
 	router.POST("/sign-up", controllers.SignUp)
 }

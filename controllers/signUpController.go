@@ -1,20 +1,57 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
+	"github.com/DuckBap/Duckbap-backend/permissions"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func SignUp(c *gin.Context) {
-	user, errorValue, define := models.SignUpUser(c)
-	if define == 1 {
-		c.JSON(http.StatusAlreadyReported, errorValue)
-	} else if define == 2 {
-		c.JSON(http.StatusFailedDependency, errorValue)
-	} else if define == 3 {
-		c.JSON(http.StatusNotFound, errorValue)
-	} else {
-		c.JSON(http.StatusOK, user)
+func	SignUp (c *gin.Context) {
+	var	user		models.User
+	var	errorPoint	string
+	var httpCode	int
+	var	checker		bool
+
+	err := c.Bind(&user)
+	if err != nil {
+		c.JSON(404, err)
 	}
+	errorPoint, httpCode, checker = permissions.IsEmptyValue(&user)
+	if checker {
+		c.JSON(httpCode, errorPoint)
+		return
+	}
+	tx := configs.DB.Create(&user)
+	if tx.Error != nil {
+		errorPoint, httpCode = permissions.FindErrorPoint(tx.Error)
+		c.JSON(httpCode, errorPoint)
+		return
+	}
+	c.JSON(httpCode, user)
+}
+
+/* url : Get /sign-up
+** 아티스트의 목록을 보내줘서 보여줘야 한다.
+** 이유 : 회원 가입시 필수로 최애 아티스트를 선택해야 되기 때문이다.
+ */
+func	ShowArtists (c *gin.Context) {
+	var artist		models.Artist
+	var	artists		[]models.Artist
+	var	errorPoint	string
+	var httpCode	int
+
+	tx := configs.DB.Model(&artist).Select("id, name").Find(&artists)
+	if tx.Error != nil {
+		errorPoint = tx.Error.Error()
+		httpCode = http.StatusNotFound
+	} else {
+		httpCode = http.StatusOK
+	}
+	if errorPoint != "" {
+		c.JSON(httpCode, errorPoint)
+		return
+	}
+	c.JSON(httpCode, artists)
 }

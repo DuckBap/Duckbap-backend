@@ -13,13 +13,16 @@ import (
 
 func main() {
 	var err error
+	//var a int64
 	r := gin.New()
-
+	//var user models.User
 	configs.DB, err = gorm.Open(mysql.Open(configs.DbURL(configs.BuildDBConfig())), &gorm.Config{})
 	if err != nil {
 		log.Println(err)
 	}
 	configs.DB.AutoMigrate(&models.User{}, &models.Funding{}, &models.FundingImg{},&models.Artist{}, &models.Receipt{},  &models.Entertainment{})
+	//configs.DB.Model(&user).Where("user_name = ?", "dokang").Find(&user)
+	//fmt.Println(user.UserName)
 	routers.SignUpRouter(r)
 	//configs.DB.AutoMigrate(&models.Entertainment{})
 	//configs.DB.AutoMigrate(&models.Artist{})//, &models.Entertainment{})
