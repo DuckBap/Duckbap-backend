@@ -4,9 +4,15 @@ import (
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/DuckBap/Duckbap-backend/permissions"
+	"golang.org/x/crypto/bcrypt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
+
+func hash(pwd string) string {
+	digest, _ := bcrypt.GenerateFromPassword([]byte(pwd), 10)
+	return string(digest)
+}
 
 func	SignUp (c *gin.Context) {
 	var	user		models.User
@@ -18,11 +24,13 @@ func	SignUp (c *gin.Context) {
 	if err != nil {
 		c.JSON(404, err)
 	}
-	errorPoint, httpCode, checker = permissions.IsEmptyValue(&user)
+	errorPoint, httpCode, checker = permissions.IsPossibleValue(&user)
 	if checker {
 		c.JSON(httpCode, errorPoint)
 		return
 	}
+	password := hash(user.Password)
+	user.Password = password
 	tx := configs.DB.Create(&user)
 	if tx.Error != nil {
 		errorPoint, httpCode = permissions.FindErrorPoint(tx.Error)
