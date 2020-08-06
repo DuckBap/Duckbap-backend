@@ -1,1 +1,1 @@
-package permission
+package permissions
