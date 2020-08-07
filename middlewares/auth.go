@@ -43,7 +43,7 @@ func init() {
 			}
 			username := login.UserName
 			password := login.Password
-			err := configs.DB.Where("username = ? AND password = ?", username, password).First(&user).Error
+			err := configs.DB.Where("user_name = ? AND password = ?", username, password).First(&user).Error
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
