@@ -108,48 +108,131 @@ func	IsAlreadyValuePresent(model interface{}, query string, value interface{}) b
 	return false
 }
 
-func	IsPossibleValue(dataStruct interface{}) (string, int, bool){
+func	isEmptyValue (elements reflect.Value, index int) (string, bool) {
 	var	emptyPoint		string
-	var elementTag		string
-	var emptyBool		bool
-	var elementString	string
-	var elementLen		int
-	var	httpCode		int
+	var isEmpty			bool
+
+	elementField := elements.Field(index).Interface()
+	elementString := fmt.Sprintf("%v", elementField)
+	elementType := elements.Field(index).Type().String()
+	emptyPoint = elements.Type().Field(index).Name
+	if  elementType == "uint" || elementType == "string"{
+		if len(elementString) == 0 || elementString == "0" {
+			isEmpty = true
+		} else if len(strings.Trim(elementString, " ")) == 0 {
+			isEmpty = true
+		}
+	}
+	if isEmpty {
+		emptyPoint = changeString(emptyPoint)
+	}
+	return emptyPoint, isEmpty
+}
+
+func	isAlreadyPresent(dataStruct interface{}, elements reflect.Value, index int) (string, bool){
+	var isExist			bool
 	var	model			interface{}
-	var elementField	interface{}
+
+	elementField := elements.Field(index).Interface()
+	elementTag := elements.Type().Field(index).Tag.Get("gorm")
+	presentPoint := elements.Type().Field(index).Name
+	if  strings.Contains(elementTag, "not null") {
+		if presentPoint == "FavoriteArtist" {
+			model = elements.Field(elements.NumField() - 1).Interface()
+		} else {
+			model = dataStruct
+		}
+		if strings.Contains(elementTag, "unique") &&
+			IsAlreadyValuePresent(model, presentPoint, elementField) {
+			isExist = true
+		}
+	}
+	presentPoint = changeString(presentPoint)
+	return presentPoint, isExist
+}
+
+func	isImpossibleValue(elements reflect.Value, index *int) (string, bool) {
+	var	value			string
+	var	nextValue		string
+	var impossiblePoint string
+	var	isImpossible	bool
+	var idx				int
+
+	idx = *index
+	elementName := elements.Type().Field(idx).Name
+	if elementName == "Password1" && ((idx + 1) < elements.NumField()){
+		if elements.Type().Field(idx + 1).Name == "Password2" {
+			value = fmt.Sprintf("%v",elements.Field(idx).Interface())
+			nextValue = fmt.Sprintf("%v",elements.Field(idx + 1).Interface())
+			if value != nextValue {
+				impossiblePoint = elementName
+				*index++
+				isImpossible = true
+			}
+		}
+	} else if elementName == "Email" {
+		value = fmt.Sprintf("%v", elements.Field(idx).Interface())
+		if strings.Count(value, "@") != 1 {
+			isImpossible = true
+		} else if strings.Count(value, ".com") + strings.Count(value, ".net") != 1 {
+			isImpossible = true
+		} else if strings.Index(value, ".com") != (len(value) - 4) {
+			if strings.Index(value, ".net") != (len(value) - 4) {
+				isImpossible = true
+			}
+		}
+		if isImpossible {
+			impossiblePoint = elementName
+		}
+	}
+	return impossiblePoint, isImpossible
+}
+
+func	IsEmpty (dataStruct interface{}) (string, int, bool) {
+	var	errorPoint		string
+	var isPossible		bool
+	var	httpCode		int
+	var	errorChecker	bool
+
+	target := reflect.ValueOf(dataStruct)
+	elements := target.Elem()
+	for idx := 0; idx < elements.NumField(); idx++ {
+		if impossibleValue, isUnable := isImpossibleValue(elements, &idx); isUnable {
+			errorPoint = impossibleValue
+			isPossible = isUnable
+			errorChecker = true
+			fmt.Println("impossible value\n", errorPoint)
+		} else if emptyValue,isExist := isEmptyValue(elements, idx); isExist {
+			errorPoint = emptyValue
+			isPossible = isExist
+			errorChecker = true
+			fmt.Println("empty value\n", emptyValue)
+		}
+	}
+	if errorChecker {
+		httpCode = http.StatusBadRequest
+	} else {
+		httpCode = http.StatusOK
+	}
+	return errorPoint, httpCode, isPossible
+}
+
+func	IsExist(dataStruct interface{}) (string, int, bool){
+	var	errorPoint		string
+	var isPossible		bool
+	var	httpCode		int
 
 	target := reflect.ValueOf(dataStruct)
 	elements := target.Elem()
 	httpCode = http.StatusOK
 	for idx := 0; idx < elements.NumField(); idx++ {
-		elementField = elements.Field(idx).Interface()
-		fmt.Printf("elementField : %v\n", elements.Field(idx))
-		fmt.Printf("another elementField : %v\n", elements.Type())
-		fmt.Printf("another elementField2 : %v\n", elements.Type().Field(idx))
-		elementString = fmt.Sprintf("%v", elementField)
-		elementLen = len(elementString)
-		elementTag = elements.Type().Field(idx).Tag.Get("gorm")
-		emptyPoint = elements.Type().Field(idx).Name
-		if  strings.Contains(elementTag, "not null") {
-			if elementLen == 0 || elementString == "0" {
-				httpCode = http.StatusBadRequest
-				emptyBool = true
-				break
-			} else {
-				if emptyPoint == "FavoriteArtist" {
-					model = elements.Field(elements.NumField() - 1).Interface()
-				} else {
-					model = dataStruct
-				}
-				if strings.Contains(elementTag, "unique") &&
-					IsAlreadyValuePresent(model, emptyPoint, elementField) {
-					httpCode = http.StatusAlreadyReported
-					emptyBool = true
-					break
-				}
-			}
+		presentPoint, isExist := isAlreadyPresent(dataStruct, elements, idx)
+		if isExist {
+			errorPoint = presentPoint
+			isPossible = isExist
+			httpCode = http.StatusAlreadyReported
+			fmt.Println("already present value\n", errorPoint)
 		}
 	}
-	emptyPoint = changeString(emptyPoint)
-	return emptyPoint, httpCode, emptyBool
+	return errorPoint, httpCode, isPossible
 }

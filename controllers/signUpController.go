@@ -1,13 +1,23 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/DuckBap/Duckbap-backend/permissions"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
+
+type	InputUserData struct {
+	UserName string
+	Password1 string
+	Password2 string
+	Email string
+	NickName string
+	FavoriteArtist uint
+}
 
 func hash(pwd string) string {
 	digest, _ := bcrypt.GenerateFromPassword([]byte(pwd), 10)
@@ -16,16 +26,28 @@ func hash(pwd string) string {
 
 func	SignUp (c *gin.Context) {
 	var	user		models.User
+	var	inputData	InputUserData
 	var	errorPoint	string
 	var httpCode	int
 	var	checker		bool
 
-	err := c.Bind(&user)
+	err := c.Bind(&inputData)
 	if err != nil {
-		c.JSON(404, err)
+		c.JSON(400, err)
 	}
-	errorPoint, httpCode, checker = permissions.IsPossibleValue(&user)
+	errorPoint, httpCode, checker = permissions.IsEmpty(&inputData)
 	if checker {
+		fmt.Println("Impossible")
+		c.JSON(httpCode, errorPoint)
+		return
+	}
+	user.UserName = inputData.UserName
+	user.Password = inputData.Password1
+	user.NickName = inputData.NickName
+	user.FavoriteArtist = inputData.FavoriteArtist
+	errorPoint, httpCode, checker = permissions.IsExist(&user)
+	if checker {
+		fmt.Println("Impossible")
 		c.JSON(httpCode, errorPoint)
 		return
 	}
