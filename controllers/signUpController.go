@@ -11,18 +11,19 @@ import (
 )
 
 type	InputUserData struct {
-	UserName string
-	Password1 string
-	Password2 string
-	Email string
-	NickName string
-	FavoriteArtist uint
+	UserName string		`form:"username"`
+	Password1 string	`form:"password1"`
+	Password2 string	`form:"password2"`
+	Email 	string		`form:"email"`
+	NickName string		`form:"nickname"`
+	FavoriteArtist uint	`form:"favoriteartist"`
 }
 
 func	inputDataToUser (user *models.User, inputData InputUserData) {
 	(*user).UserName = inputData.UserName
 	(*user).Password = inputData.Password1
 	(*user).NickName = inputData.NickName
+	(*user).Email = inputData.Email
 	(*user).FavoriteArtist = inputData.FavoriteArtist
 }
 
