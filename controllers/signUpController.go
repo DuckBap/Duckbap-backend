@@ -19,6 +19,13 @@ type	InputUserData struct {
 	FavoriteArtist uint
 }
 
+func	inputDataToUser (user *models.User, inputData InputUserData) {
+	(*user).UserName = inputData.UserName
+	(*user).Password = inputData.Password1
+	(*user).NickName = inputData.NickName
+	(*user).FavoriteArtist = inputData.FavoriteArtist
+}
+
 func hash(pwd string) string {
 	digest, _ := bcrypt.GenerateFromPassword([]byte(pwd), 10)
 	return string(digest)
@@ -41,13 +48,10 @@ func	SignUp (c *gin.Context) {
 		c.JSON(httpCode, errorPoint)
 		return
 	}
-	user.UserName = inputData.UserName
-	user.Password = inputData.Password1
-	user.NickName = inputData.NickName
-	user.FavoriteArtist = inputData.FavoriteArtist
+	inputDataToUser(&user, inputData)
 	errorPoint, httpCode, checker = permissions.IsExist(&user)
 	if checker {
-		fmt.Println("Impossible")
+		fmt.Println("IsExist")
 		c.JSON(httpCode, errorPoint)
 		return
 	}
