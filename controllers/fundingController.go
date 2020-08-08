@@ -47,6 +47,8 @@ type FundingResBody struct{
 	DetailedImgUrl		string		`json:"detailedImgUrl"`
 }
 
+
+//test
 func CreateFunding(c *gin.Context) {
 	fund := models.Funding{
 		SellerID: 1,
@@ -117,7 +119,7 @@ func GetFundingList(c *gin.Context) {
 	body := SetFundingListBody(queryString.ArtistID)
 
 	c.JSON(http.StatusOK, gin.H{
-		"fund_list": body,
+		"fundList": body,
 	})
 }
 
