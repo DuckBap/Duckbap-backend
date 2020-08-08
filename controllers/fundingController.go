@@ -33,18 +33,18 @@ import (
 */
 
 type FundingResBody struct{
-	SellerName 			string
-	FundName 			string
-	Price				uint
-	TargetAmount 		uint
-	SalesAmount 		uint
-	StartDate 			time.Time
-	EndDate 			time.Time
-	ArtistName 			string
-	AchievementRate		float32			//salesAmount / Price
-	Dday				uint
-	FundingImgUrls		[]string
-	DetailedImgUrl		string
+	NickName 			string		`json:"sellerName"`
+	Name 				string		`json:"fundName"`
+	Price				uint		`json:"price"`
+	TargetAmount 		uint		`json:"targetAmount"`
+	SalesAmount 		uint		`json:"salesAmount"`
+	StartDate 			time.Time	`json:"startDate"`
+	EndDate 			time.Time	`json:"endDate"`
+	ArtistName 			string		`json:"artistName"`
+	AchievementRate		float32		`json:"achievementRate"`	//salesAmount / Price
+	Dday				uint		`json:"dDay"`
+	FundingImgUrls		[]string	`json:"fundingImgUrls"`
+	DetailedImgUrl		string		`json:"detailedImgUrl"`
 }
 
 func CreateFunding(c *gin.Context) {
@@ -78,11 +78,13 @@ func GetFunding(c *gin.Context) {
 func SetFundingBody(body *FundingResBody, fundID string) {
 	var titleImg string
 
-	row := configs.DB.Raw("select users.nick_name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.name, fundings.sales_amount, fundings.start_date, fundings.end_date, fundings.price, fundings.target_amount, artists.name,	fundings.sales_amount / fundings.target_amount as achievement_rate from users inner join fundings on fundings.seller_id = users.id inner join artists on fundings.artist_id = artists.id where fundings.id = ? and fundings.deleted_at is null", fundID).Row()
-	row.Scan(&body.SellerName, &titleImg, &body.Dday, &body.FundName, &body.SalesAmount, &body.StartDate, &body.EndDate, &body.Price, &body.TargetAmount, &body.ArtistName, &body.AchievementRate)
+	sqlStatement := "select users.nick_name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.name, fundings.sales_amount, fundings.start_date, fundings.end_date, fundings.price, fundings.target_amount, artists.name,	fundings.sales_amount / fundings.target_amount as achievement_rate from users inner join fundings on fundings.seller_id = users.id inner join artists on fundings.artist_id = artists.id where fundings.id = ? and fundings.deleted_at is null"
+	row := configs.DB.Debug().Raw(sqlStatement, fundID).Row()
+	row.Scan(&body.NickName, &titleImg, &body.Dday, &body.Name, &body.SalesAmount, &body.StartDate, &body.EndDate, &body.Price, &body.TargetAmount, &body.ArtistName, &body.AchievementRate)
 	body.FundingImgUrls = append(body.FundingImgUrls, titleImg)
 
-	rows, _ := configs.DB.Raw("select url, is_title from funding_imgs inner join fundings on funding_imgs.funding_id = ? where funding_imgs.deleted_at is null order by funding_imgs.order", fundID).Rows()
+	sqlStatement = "select url, is_title from funding_imgs where funding_imgs.funding_id = ? and funding_imgs.deleted_at is null order by funding_imgs.order"
+	rows, _ := configs.DB.Raw(sqlStatement, fundID).Rows()
 	defer rows.Close()
 	for rows.Next() {
 		var url string
@@ -101,11 +103,11 @@ type QueryString struct {
 }
 
 type FundingListResBody struct {
-	SellerName      string
-	FundingName     string
-	MainImgUrl      string
-	DDay            int
-	AchievementRate float32
+	NickName		string		`json:"sellerName"`
+	Name			string		`json:"fundingName"`
+	MainImgUrl      string		`json:"mainImgUrl"`
+	DDay            int			`json:"dDay"`
+	AchievementRate float64		`json:"achievementRate"`
 }
 
 func GetFundingList(c *gin.Context) {
@@ -122,24 +124,10 @@ func GetFundingList(c *gin.Context) {
 func SetFundingListBody(artistID string) *[]FundingListResBody{
 	body := []FundingListResBody{}
 
-	rows, _ := configs.DB.Raw("select users.user_name, fundings.name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount as acheivement_rate from fundings inner join users on fundings.seller_id = users.id join artists where artists.id = ? and fundings.deleted_at is null order by d_day", artistID).Rows()
-	defer rows.Close()
-	for rows.Next() {
-		var seller 				string
-		var fundingName 		string
-		var imgUrl				string
-		var dDay				int
-		var achievementRate		float32
-
-		rows.Scan(&seller, &fundingName, &imgUrl, &dDay, &achievementRate)
-		body = append(body, FundingListResBody{
-			SellerName: seller,
-			FundingName: fundingName,
-			MainImgUrl: imgUrl,
-			DDay: dDay,
-			AchievementRate: achievementRate,
-		})
-	}
+	configs.DB.Debug().Table("fundings").Joins("inner join users on fundings.seller_id = users.id join artists").
+		Select("users.nick_name, fundings.name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount as achievement_rate").
+		Where("artists.id = ? and fundings.deleted_at is null", artistID).Order("d_day").
+		Scan(&body)
 	return &body
 }
 
