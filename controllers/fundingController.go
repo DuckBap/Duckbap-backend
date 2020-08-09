@@ -33,14 +33,14 @@ import (
 */
 
 type FundingResBody struct{
-	NickName 			string		`json:"sellerName"`
-	Name 				string		`json:"fundName"`
+	NickName			string		`json:"sellerName"`
+	Name				string		`json:"fundName"`
 	Price				uint		`json:"price"`
-	TargetAmount 		uint		`json:"targetAmount"`
-	SalesAmount 		uint		`json:"salesAmount"`
-	StartDate 			time.Time	`json:"startDate"`
-	EndDate 			time.Time	`json:"endDate"`
-	ArtistName 			string		`json:"artistName"`
+	TargetAmount		uint		`json:"targetAmount"`
+	SalesAmount			uint		`json:"salesAmount"`
+	StartDate			time.Time	`json:"startDate"`
+	EndDate				time.Time	`json:"endDate"`
+	ArtistName			string		`json:"artistName"`
 	AchievementRate		float32		`json:"achievementRate"`	//salesAmount / Price
 	Dday				uint		`json:"dDay"`
 	FundingImgUrls		[]string	`json:"fundingImgUrls"`
@@ -68,16 +68,22 @@ func CreateFunding(c *gin.Context) {
 }
 
 func GetFunding(c *gin.Context) {
-	body := FundingResBody{}
 	fundID := c.Param("fund_id")
-	SetFundingBody(&body, fundID)
+
+	body, err := SetFundingBody(fundID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"mgs": "no funding",
+		})
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "get funding",
 		"funding": body,
 	})
 }
 
-func SetFundingBody(body *FundingResBody, fundID string) {
+func SetFundingBody(fundID string) (*FundingResBody, error){
+	body := FundingResBody{}
 	var titleImg string
 
 	sqlStatement := "select users.nick_name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.name, fundings.sales_amount, fundings.start_date, fundings.end_date, fundings.price, fundings.target_amount, artists.name,	fundings.sales_amount / fundings.target_amount as achievement_rate from users inner join fundings on fundings.seller_id = users.id inner join artists on fundings.artist_id = artists.id where fundings.id = ? and fundings.deleted_at is null"
@@ -86,8 +92,11 @@ func SetFundingBody(body *FundingResBody, fundID string) {
 	body.FundingImgUrls = append(body.FundingImgUrls, titleImg)
 
 	sqlStatement = "select url, is_title from funding_imgs where funding_imgs.funding_id = ? and funding_imgs.deleted_at is null order by funding_imgs.order"
-	rows, _ := configs.DB.Raw(sqlStatement, fundID).Rows()
+	rows, err := configs.DB.Raw(sqlStatement, fundID).Rows()
 	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
 	for rows.Next() {
 		var url string
 		var isTitle bool
@@ -98,6 +107,7 @@ func SetFundingBody(body *FundingResBody, fundID string) {
 			body.DetailedImgUrl = url
 		}
 	}
+	return &body, nil
 }
 
 type QueryString struct {
@@ -105,11 +115,11 @@ type QueryString struct {
 }
 
 type FundingListResBody struct {
-	NickName		string		`json:"sellerName"`
-	Name			string		`json:"fundingName"`
-	MainImgUrl      string		`json:"mainImgUrl"`
-	DDay            int			`json:"dDay"`
-	AchievementRate float64		`json:"achievementRate"`
+	NickName			string		`json:"sellerName"`
+	Name				string		`json:"fundingName"`
+	MainImgUrl			string		`json:"mainImgUrl"`
+	DDay				int			`json:"dDay"`
+	AchievementRate		float64		`json:"achievementRate"`
 }
 
 func GetFundingList(c *gin.Context) {
@@ -117,20 +127,19 @@ func GetFundingList(c *gin.Context) {
 	c.BindQuery(&queryString)
 
 	body := SetFundingListBody(queryString.ArtistID)
-
 	c.JSON(http.StatusOK, gin.H{
 		"fundList": body,
 	})
 }
 
-func SetFundingListBody(artistID string) *[]FundingListResBody{
+func SetFundingListBody(artistID string) []FundingListResBody{
 	body := []FundingListResBody{}
 
-	configs.DB.Debug().Table("fundings").Joins("inner join users on fundings.seller_id = users.id join artists").
+	configs.DB.Table("fundings").Joins("inner join users on fundings.seller_id = users.id join artists").
 		Select("users.nick_name, fundings.name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount as achievement_rate").
 		Where("artists.id = ? and fundings.deleted_at is null", artistID).Order("d_day").
 		Scan(&body)
-	return &body
+	return body
 }
 
 func BuyFunding(c *gin.Context) {
