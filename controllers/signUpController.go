@@ -15,7 +15,7 @@ type	InputUserData struct {
 	Password2 string	`form:"password2"`
 	Email 	string		`form:"email"`
 	NickName string		`form:"nickname"`
-	FavoriteArtist uint	`form:"favoriteartist"`
+	FavoriteArtist uint	`form:"favorite_artist" json:"favorite_artist"`
 }
 
 type	OutputArtistList struct {

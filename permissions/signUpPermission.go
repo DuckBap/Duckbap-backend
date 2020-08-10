@@ -113,8 +113,8 @@ func	isEmptyValue (elements reflect.Value, index int) (string, bool) {
 	var isEmpty			bool
 
 	elementField := elements.Field(index).Interface()
-	elementString := fmt.Sprintf("%v", elementField)
 	elementType := elements.Field(index).Type().String()
+	elementString := fmt.Sprintf("%v", elementField)
 	emptyPoint = elements.Type().Field(index).Name
 	if  elementType == "uint" || elementType == "string"{
 		if len(elementString) == 0 || elementString == "0" {
@@ -231,6 +231,7 @@ func	IsExist(dataStruct interface{}) (string, int, bool){
 			errorPoint = presentPoint
 			isPossible = isExist
 			httpCode = http.StatusAlreadyReported
+			break
 		}
 	}
 	return errorPoint, httpCode, isPossible
