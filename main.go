@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
+	"github.com/DuckBap/Duckbap-backend/routers"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -31,8 +32,8 @@ func main() {
 	configs.DB.AutoMigrate(&models.User{}, &models.Funding{}, &models.FundingImg{},
 		&models.Artist{}, &models.Receipt{}, &models.Entertainment{})
 
-	//rGroup := r.Group("/")
-	//routers.SetFundingUrls(rGroup.Group("/fundings"))
+	rGroup := r.Group("/")
+	routers.SetFundingRouter(rGroup.Group("/fundings"))
 
 	r.Run(":8080")
 }
