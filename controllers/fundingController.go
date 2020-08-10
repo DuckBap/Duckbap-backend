@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/DuckBap/Duckbap-backend/configs"
-	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -50,23 +49,23 @@ type FundingResBody struct{
 
 
 //test
-func CreateFunding(c *gin.Context) {
-	fund := models.Funding{
-		SellerID: 1,
-		Name: "트와이스 굿즈3",
-		Price: 4000,
-		TargetAmount: 50000,
-		MainImgUrl: "이미지4",
-		ArtistID: 2,
-		StartDate: time.Now(),
-		EndDate: time.Now().Add(24 * time.Hour),
-	}
-	configs.DB.Create(&fund)
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "create funding",
-		"funding": fund,
-	})
-}
+//func CreateFunding(c *gin.Context) {
+//	fund := models.Funding{
+//		SellerID: 1,
+//		Name: "트와이스 굿즈3",
+//		Price: 4000,
+//		TargetAmount: 50000,
+//		MainImgUrl: "이미지4",
+//		ArtistID: 2,
+//		StartDate: time.Now(),
+//		EndDate: time.Now().Add(24 * time.Hour),
+//	}
+//	configs.DB.Create(&fund)
+//	c.JSON(http.StatusOK, gin.H{
+//		"msg": "create funding",
+//		"funding": fund,
+//	})
+//}
 
 func GetFunding(c *gin.Context) {
 	fundID := c.Param("fund_id")
