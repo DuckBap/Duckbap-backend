@@ -202,11 +202,13 @@ func	IsEmpty (dataStruct interface{}) (string, int, bool) {
 			isPossible = isUnable
 			errorChecker = true
 			fmt.Println("impossible value\n", errorPoint)
+			break
 		} else if emptyValue,isExist := isEmptyValue(elements, idx); isExist {
 			errorPoint = emptyValue
 			isPossible = isExist
 			errorChecker = true
 			fmt.Println("empty value\n", emptyValue)
+			break
 		}
 	}
 	if errorChecker {
