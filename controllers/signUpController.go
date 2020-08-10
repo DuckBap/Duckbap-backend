@@ -44,9 +44,12 @@ func	SignUp (c *gin.Context) {
 	var httpCode	int
 	var	checker		bool
 
-	err := c.Bind(&inputData)
+	err := c.ShouldBind(&inputData)
 	if err != nil {
-		c.JSON(400, err)
+		errorPoint = permissions.AnalyzeErrorMessage(err.Error())
+		errorPoint += " doesn't exist"
+		c.JSON(400, errorPoint)
+		return
 	}
 	errorPoint, httpCode, checker = permissions.IsEmpty(&inputData)
 	if checker {
@@ -67,7 +70,7 @@ func	SignUp (c *gin.Context) {
 		c.JSON(httpCode, errorPoint)
 		return
 	}
-	c.JSON(httpCode, user)
+	//c.JSON(httpCode, user)
 }
 
 /* url : Get /sign-up

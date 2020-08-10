@@ -35,7 +35,7 @@ func	changeString(str string) string {
 	return newStr
 }
 
-func	analyzeErrorMessage(message string) string {
+func	AnalyzeErrorMessage(message string) string {
 	var	errorPoint	string
 
 	if strings.Contains(message, "users.user_name") {
@@ -72,7 +72,7 @@ func	FindErrorPoint(err error) (string, int){
 	if marshalingError != nil {
 		errorPoint = "json marshaling error"
 	} else {
-		errorPoint = analyzeErrorMessage(errorStruct.Message)
+		errorPoint = AnalyzeErrorMessage(errorStruct.Message)
 	}
 	if errorStruct.Number == 1062 {
 		httpCode = http.StatusAlreadyReported
@@ -160,19 +160,24 @@ func	isImpossibleValue(elements reflect.Value, index *int) (string, bool) {
 
 	idx = *index
 	elementName := elements.Type().Field(idx).Name
-	if elementName == "Password1" && ((idx + 1) < elements.NumField()){
-		if elements.Type().Field(idx + 1).Name == "Password2" {
+	if elementName == "Password2" {
+		if elements.Type().Field(idx - 1).Name == "Password1" {
 			value = fmt.Sprintf("%v",elements.Field(idx).Interface())
-			nextValue = fmt.Sprintf("%v",elements.Field(idx + 1).Interface())
+			nextValue = fmt.Sprintf("%v",elements.Field(idx - 1).Interface())
 			if value != nextValue {
-				impossiblePoint = elementName
+				impossiblePoint = "different password "
 				*index++
 				isImpossible = true
 			}
 		}
 	} else if elementName == "Email" {
 		value = fmt.Sprintf("%v", elements.Field(idx).Interface())
+		_index := strings.Index(value, "@")
 		if strings.Count(value, "@") != 1 {
+			isImpossible = true
+		} else if strings.Index(value, ".com") == _index + 1 {
+			isImpossible = true
+		} else if strings.Index(value, ".net") == _index + 1 {
 			isImpossible = true
 		} else if strings.Count(value, ".com") + strings.Count(value, ".net") != 1 {
 			isImpossible = true
@@ -197,14 +202,14 @@ func	IsEmpty (dataStruct interface{}) (string, int, bool) {
 	target := reflect.ValueOf(dataStruct)
 	elements := target.Elem()
 	for idx := 0; idx < elements.NumField(); idx++ {
-		if impossibleValue, isUnable := isImpossibleValue(elements, &idx); isUnable {
-			errorPoint = impossibleValue
-			isPossible = isUnable
-			errorChecker = true
-			break
-		} else if emptyValue,isExist := isEmptyValue(elements, idx); isExist {
+		 if emptyValue,isExist := isEmptyValue(elements, idx); isExist {
 			errorPoint = emptyValue
 			isPossible = isExist
+			errorChecker = true
+			break
+		} else if impossibleValue, isUnable := isImpossibleValue(elements, &idx); isUnable {
+			errorPoint = impossibleValue
+			isPossible = isUnable
 			errorChecker = true
 			break
 		}
