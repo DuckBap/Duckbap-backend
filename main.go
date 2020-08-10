@@ -4,7 +4,7 @@ import (
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
-	//"github.com/DuckBap/duckBap/routers"
+	"github.com/DuckBap/Duckbap-backend/routers"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
@@ -24,7 +24,8 @@ func main() {
 	//configs.DB.AutoMigrate(&models.User{})
 	//configs.DB.AutoMigrate(&models.Funding{})
 	//configs.DB.AutoMigrate(&models.Receipt{}, &models.FundingImg{})
-
+	rGroup := r.Group("/")
+	routers.SetUserRouters(rGroup.Group("/"))
 	r.Run(":8080")
 }
 //
