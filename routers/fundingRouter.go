@@ -7,7 +7,7 @@ import (
 
 func SetFundingRouter(router *gin.RouterGroup) {
 	// group name : /fundings
-	router.POST("/", controller.CreateFunding)
+	//router.POST("/", controller.CreateFunding)
 	router.GET("/:fund_id", controller.GetFunding)
 	router.GET("/", controller.GetFundingList)
 }

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/DuckBap/Duckbap-backend/configs"
-	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -33,39 +32,39 @@ import (
 */
 
 type FundingResBody struct{
-	NickName			string		`json:"sellerName"`
-	Name				string		`json:"fundName"`
-	Price				uint		`json:"price"`
-	TargetAmount		uint		`json:"targetAmount"`
-	SalesAmount			uint		`json:"salesAmount"`
-	StartDate			time.Time	`json:"startDate"`
-	EndDate				time.Time	`json:"endDate"`
-	ArtistName			string		`json:"artistName"`
-	AchievementRate		float32		`json:"achievementRate"`	//salesAmount / Price
-	Dday				uint		`json:"dDay"`
-	FundingImgUrls		[]string	`json:"fundingImgUrls"`
-	DetailedImgUrl		string		`json:"detailedImgUrl"`
+	NickName 			string		`json:"sellerName"`
+	Name 				string		`json:"fundName"`
+	Price 				uint		`json:"price"`
+	TargetAmount 		uint		`json:"targetAmount"`
+	SalesAmount 		uint		`json:"salesAmount"`
+	StartDate 			time.Time	`json:"startDate"`
+	EndDate 			time.Time	`json:"endDate"`
+	ArtistName 			string		`json:"artistName"`
+	AchievementRate 	float32		`json:"achievementRate"`	//salesAmount / Price
+	Dday 				uint		`json:"dDay"`
+	FundingImgUrls 		[]string	`json:"fundingImgUrls"`
+	DetailedImgUrl 		string		`json:"detailedImgUrl"`
 }
 
 
 //test
-func CreateFunding(c *gin.Context) {
-	fund := models.Funding{
-		SellerID: 1,
-		Name: "아이유 굿즈3",
-		Price: 4000,
-		TargetAmount: 50000,
-		MainImgUrl: "이미지3",
-		ArtistID: 1,
-		StartDate: time.Now(),
-		EndDate: time.Now().Add(24 * time.Hour),
-	}
-	configs.DB.Create(&fund)
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "create funding",
-		"funding": fund,
-	})
-}
+//func CreateFunding(c *gin.Context) {
+//	fund := models.Funding{
+//		SellerID: 1,
+//		Name: "아이유 굿즈3",
+//		Price: 4000,
+//		TargetAmount: 50000,
+//		MainImgUrl: "이미지3",
+//		ArtistID: 1,
+//		StartDate: time.Now(),
+//		EndDate: time.Now().Add(24 * time.Hour),
+//	}
+//	configs.DB.Create(&fund)
+//	c.JSON(http.StatusOK, gin.H{
+//		"msg": "create funding",
+//		"funding": fund,
+//	})
+//}
 
 func GetFunding(c *gin.Context) {
 	fundID := c.Param("fund_id")
@@ -115,11 +114,11 @@ type QueryString struct {
 }
 
 type FundingListResBody struct {
-	NickName			string		`json:"sellerName"`
-	Name				string		`json:"fundingName"`
-	MainImgUrl			string		`json:"mainImgUrl"`
-	DDay				int			`json:"dDay"`
-	AchievementRate		float64		`json:"achievementRate"`
+	NickName 			string		`json:"sellerName"`
+	Name 				string		`json:"fundingName"`
+	MainImgUrl 			string		`json:"mainImgUrl"`
+	DDay 				int			`json:"dDay"`
+	AchievementRate 	float64		`json:"achievementRate"`
 }
 
 func GetFundingList(c *gin.Context) {
