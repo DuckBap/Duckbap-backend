@@ -37,9 +37,14 @@ func BannerSelect (c *gin.Context) {
 }
 
 func ListSelect (c *gin.Context) {
+	var bookmark []bookmarks
+	var favorite bookmarks
 	var tmp []listFunding
 
-	bookmark := findBookmarks(c)
+	id := 1
+	configs.DB.Table("bookmarks").Where("user_id = ?", id).Order("artist_id").Find(&bookmark)
+	configs.DB.Table("users").Select("favorite_artist").Where("user_id = ?", id).Find(&favorite)
+	bookmark = append(bookmark, favorite)
 	fundings := setBookmarkFundingList(bookmark)
 	if len(fundings) < 8 {
 		dup := setDuplicates(bookmark)
@@ -71,15 +76,4 @@ func setDuplicates (bookmark []bookmarks) []uint {
 		dup[i] = bookmark[i].ArtistID
 	}
 	return dup
-}
-
-func findBookmarks (c *gin.Context) []bookmarks {
-	id := c.Params.ByName("id")
-	var bookmark []bookmarks
-	var favorite bookmarks
-
-	configs.DB.Table("bookmarks").Where("user_id = ?", id).Order("artist_id").Find(&bookmark)
-	configs.DB.Table("users").Select("favorite_artist").Where("user_id = ?", id).Find(&favorite)
-	bookmark = append(bookmark, favorite)
-	return bookmark
 }
