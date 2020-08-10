@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/DuckBap/Duckbap-backend/configs"
+	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -49,23 +50,23 @@ type FundingResBody struct{
 
 
 //test
-//func CreateFunding(c *gin.Context) {
-//	fund := models.Funding{
-//		SellerID: 1,
-//		Name: "아이유 굿즈3",
-//		Price: 4000,
-//		TargetAmount: 50000,
-//		MainImgUrl: "이미지3",
-//		ArtistID: 1,
-//		StartDate: time.Now(),
-//		EndDate: time.Now().Add(24 * time.Hour),
-//	}
-//	configs.DB.Create(&fund)
-//	c.JSON(http.StatusOK, gin.H{
-//		"msg": "create funding",
-//		"funding": fund,
-//	})
-//}
+func CreateFunding(c *gin.Context) {
+	fund := models.Funding{
+		SellerID: 1,
+		Name: "트와이스 굿즈3",
+		Price: 4000,
+		TargetAmount: 50000,
+		MainImgUrl: "이미지4",
+		ArtistID: 2,
+		StartDate: time.Now(),
+		EndDate: time.Now().Add(24 * time.Hour),
+	}
+	configs.DB.Create(&fund)
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "create funding",
+		"funding": fund,
+	})
+}
 
 func GetFunding(c *gin.Context) {
 	fundID := c.Param("fund_id")
@@ -144,9 +145,9 @@ func GetFundingList(c *gin.Context) {
 func SetFundingListBody(artistID string) []FundingListResBody{
 	body := []FundingListResBody{}
 
-	configs.DB.Table("fundings").Joins("inner join users on fundings.seller_id = users.id join artists").
+	configs.DB.Debug().Table("fundings").Joins("inner join users on fundings.seller_id = users.id").
 		Select("fundings.id, users.nick_name, fundings.name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount as achievement_rate").
-		Where("artists.id = ? and fundings.deleted_at is null", artistID).Order("d_day").
+		Where("fundings.artist_id = ? and fundings.deleted_at is null", artistID).Order("d_day").
 		Scan(&body)
 	return body
 }
