@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -67,6 +69,8 @@ type FundingResBody struct{
 //	})
 //}
 
+var ErrNoRows = errors.New("sql: no rows in result set")
+
 func GetFunding(c *gin.Context) {
 	fundID := c.Param("fund_id")
 
@@ -93,18 +97,18 @@ func SetFundingBody(fundID string) (*FundingResBody, error){
 		"where fundings.id = ? and fundings.deleted_at is null"
 
 	row := configs.DB.Debug().Raw(sqlStatement, fundID).Row()
-	row.Scan(&body.ID, &body.NickName, &titleImg, &body.Dday, &body.Name, &body.SalesAmount, &body.StartDate, &body.EndDate,
+	err := row.Scan(&body.ID, &body.NickName, &titleImg, &body.Dday, &body.Name, &body.SalesAmount, &body.StartDate, &body.EndDate,
 		&body.Price, &body.TargetAmount, &body.ArtistName, &body.AchievementRate)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return nil, errors.New("not found")
+	}
 	body.FundingImgUrls = append(body.FundingImgUrls, titleImg)
 
 	sqlStatement = "select url, is_title from funding_imgs " +
 		"where funding_imgs.funding_id = ? and funding_imgs.deleted_at is null " +
 		"order by funding_imgs.order"
-	rows, err := configs.DB.Raw(sqlStatement, fundID).Rows()
+	rows, _ := configs.DB.Raw(sqlStatement, fundID).Rows()
 	defer rows.Close()
-	if err != nil {
-		return nil, err
-	}
 	for rows.Next() {
 		var url string
 		var isTitle bool
