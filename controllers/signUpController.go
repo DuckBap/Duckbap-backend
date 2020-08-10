@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/DuckBap/Duckbap-backend/permissions"
@@ -45,14 +44,12 @@ func	SignUp (c *gin.Context) {
 	}
 	errorPoint, httpCode, checker = permissions.IsEmpty(&inputData)
 	if checker {
-		fmt.Println("Impossible")
 		c.JSON(httpCode, errorPoint)
 		return
 	}
 	inputDataToUser(&user, inputData)
 	errorPoint, httpCode, checker = permissions.IsExist(&user)
 	if checker {
-		fmt.Println("IsExist")
 		c.JSON(httpCode, errorPoint)
 		return
 	}
