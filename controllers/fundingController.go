@@ -45,7 +45,7 @@ type fundingResBody struct{
 	StartDate 			time.Time	`json:"startDate"`
 	EndDate 			time.Time	`json:"endDate"`
 	ArtistName 			string		`json:"artistName"`
-	AchievementRate 	float32		`json:"achievementRate"`	//salesAmount / Price
+	AchievementRate 	float64		`json:"achievementRate"`	//salesAmount / Price
 	Dday 				uint		`json:"dDay"`
 	FundingImgUrls 		[]string	`json:"fundingImgUrls"`
 	DetailedImgUrl 		string		`json:"detailedImgUrl"`
@@ -93,7 +93,7 @@ func setFundingBody(fundID string) (*fundingResBody, error){
 
 	sqlStatement := "select fundings.id, users.nick_name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, " +
 		"fundings.name, fundings.sales_amount, fundings.start_date, fundings.end_date, fundings.price, " +
-		"fundings.target_amount, artists.name, fundings.sales_amount / fundings.target_amount as achievement_rate from users " +
+		"fundings.target_amount, artists.name, fundings.sales_amount / fundings.target_amount * 100 as achievement_rate from users " +
 		"inner join fundings on fundings.seller_id = users.id inner join artists on fundings.artist_id = artists.id " +
 		"where fundings.id = ? and fundings.deleted_at is null"
 
@@ -157,7 +157,8 @@ func setFundingListBody(artistID uint) []fundingListResBody{
 	body := []fundingListResBody{}
 
 	configs.DB.Debug().Table("fundings").Joins("inner join users on fundings.seller_id = users.id").
-		Select("fundings.id, users.nick_name, fundings.name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount as achievement_rate").
+		Select("fundings.id, users.nick_name, fundings.name, fundings.main_img_url, " +
+			"fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount * 100 as achievement_rate").
 		Where("fundings.artist_id = ? and fundings.deleted_at is null", artistID).Order("d_day").
 		Scan(&body)
 	return body
