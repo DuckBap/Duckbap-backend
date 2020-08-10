@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/DuckBap/Duckbap-backend/configs"
+	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
@@ -33,7 +35,7 @@ import (
 - 이미지
 */
 
-type FundingResBody struct{
+type fundingResBody struct{
 	ID					uint		`json:"id"`
 	NickName 			string		`json:"sellerName"`
 	Name 				string		`json:"fundName"`
@@ -54,7 +56,7 @@ type FundingResBody struct{
 //func CreateFunding(c *gin.Context) {
 //	fund := models.Funding{
 //		SellerID: 1,
-//		Name: "트와이스 굿즈3",
+//		Name: "아이 굿즈3",
 //		Price: 4000,
 //		TargetAmount: 50000,
 //		MainImgUrl: "이미지4",
@@ -69,25 +71,24 @@ type FundingResBody struct{
 //	})
 //}
 
-var ErrNoRows = errors.New("sql: no rows in result set")
-
 func GetFunding(c *gin.Context) {
 	fundID := c.Param("fund_id")
 
-	body, err := SetFundingBody(fundID)
+	body, err := setFundingBody(fundID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"mgs": "no funding",
 		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"msg": "get funding",
+			"funding": body,
+		})
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "get funding",
-		"funding": body,
-	})
 }
 
-func SetFundingBody(fundID string) (*FundingResBody, error){
-	body := FundingResBody{}
+func setFundingBody(fundID string) (*fundingResBody, error){
+	body := fundingResBody{}
 	var titleImg string
 
 	sqlStatement := "select fundings.id, users.nick_name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, " +
@@ -122,11 +123,11 @@ func SetFundingBody(fundID string) (*FundingResBody, error){
 	return &body, nil
 }
 
-type QueryString struct {
-	ArtistID string	`form:"artist-id" binding:"required"`
+type queryString struct {
+	ArtistID 			uint	`form:"artist-id" binding:"required"`
 }
 
-type FundingListResBody struct {
+type fundingListResBody struct {
 	ID					uint		`json:"id"`
 	NickName 			string		`json:"sellerName"`
 	Name 				string		`json:"fundingName"`
@@ -136,23 +137,42 @@ type FundingListResBody struct {
 }
 
 func GetFundingList(c *gin.Context) {
-	queryString := QueryString{}
-	c.BindQuery(&queryString)
+	queryString := queryString{}
 
-	body := SetFundingListBody(queryString.ArtistID)
-	c.JSON(http.StatusOK, gin.H{
-		"fundList": body,
-	})
+	err := c.ShouldBindQuery(&queryString)
+	if err != nil || !isArtistExist(queryString.ArtistID) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"msg": "no artist",
+		})
+	} else {
+		body := setFundingListBody(queryString.ArtistID)
+		c.JSON(http.StatusOK, gin.H{
+			"fundList": body,
+		})
+	}
+
 }
 
-func SetFundingListBody(artistID string) []FundingListResBody{
-	body := []FundingListResBody{}
+func setFundingListBody(artistID uint) []fundingListResBody{
+	body := []fundingListResBody{}
 
 	configs.DB.Debug().Table("fundings").Joins("inner join users on fundings.seller_id = users.id").
 		Select("fundings.id, users.nick_name, fundings.name, fundings.main_img_url, fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount as achievement_rate").
 		Where("fundings.artist_id = ? and fundings.deleted_at is null", artistID).Order("d_day").
 		Scan(&body)
 	return body
+}
+
+func isArtistExist(artistID uint) bool {
+	artists := models.Artist{}
+
+	err := configs.DB.First(&artists, artistID).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false
+	} else {
+		return true
+	}
+
 }
 
 func BuyFunding(c *gin.Context) {
