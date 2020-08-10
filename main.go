@@ -18,9 +18,9 @@ func main() {
 		log.Println(err)
 	}
 	configs.DB.AutoMigrate(&models.User{}, &models.Funding{}, &models.FundingImg{},&models.Artist{}, &models.Receipt{},  &models.Entertainment{})
-	routerGroup := r.Group("/")
-	routers.SignUpRouter(routerGroup)
-	routers.SetUserRouters(routerGroup)
+	rGroup := r.Group("/")
+	routers.SignUpRouter(rGroup)
+	routers.SetUserRouters(rGroup)
 	r.Run(":8080")
 }
 

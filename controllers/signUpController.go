@@ -18,6 +18,12 @@ type	InputUserData struct {
 	FavoriteArtist uint	`form:"favoriteartist"`
 }
 
+type	OutputArtistList struct {
+	ID			uint	`json:"artist_id"`
+	Name		string	`json:"artist_name"`
+	ImgUrl		string	`json:"artist_img_url"`
+}
+
 func	inputDataToUser (user *models.User, inputData InputUserData) {
 	(*user).UserName = inputData.UserName
 	(*user).Password = inputData.Password1
@@ -70,11 +76,11 @@ func	SignUp (c *gin.Context) {
  */
 func	ShowArtists (c *gin.Context) {
 	var artist		models.Artist
-	var	artists		[]models.Artist
+	var	artists		[]OutputArtistList
 	var	errorPoint	string
 	var httpCode	int
 
-	tx := configs.DB.Model(&artist).Select("id, name").Find(&artists)
+	tx := configs.DB.Model(&artist).Select("id, name, img_url").Scan(&artists)
 	if tx.Error != nil {
 		errorPoint = tx.Error.Error()
 		httpCode = http.StatusNotFound
