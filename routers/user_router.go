@@ -12,3 +12,4 @@ func SetUserRouters(r *gin.RouterGroup) {
 	r.GET("/me", controllers.GetMe)
 	//r.GET("/me", middlewares.Auth.MiddlewareFunc(), <HANDLER>)
 }
+
