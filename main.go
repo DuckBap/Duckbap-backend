@@ -33,6 +33,8 @@ func main() {
 		&models.Artist{}, &models.Receipt{}, &models.Entertainment{})
 
 	rGroup := r.Group("/")
+	routers.SignUpRouter(rGroup)
+	routers.SetUserRouters(rGroup)
 	routers.SetFundingRouter(rGroup.Group("/fundings"))
 
 	r.Run(":8080")
