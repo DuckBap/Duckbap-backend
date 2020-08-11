@@ -5,7 +5,7 @@ import (
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
+//	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -44,15 +44,15 @@ func init() {
 			}
 			username := login.UserName
 			password := login.Password
-			//err := configs.DB.Where("user_name = ? AND password = ?", username, password).First(&user).Error
-			err := configs.DB.Where("user_name = ?", username).First(&user).Error
+			err := configs.DB.Where("user_name = ? AND password = ?", username, password).First(&user).Error
+			//err := configs.DB.Where("user_name = ?", username).First(&user).Error
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
 			}
-			err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-			if err != nil {
-				return nil, jwt.ErrFailedAuthentication
-			}
+			//err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+			//if err != nil {
+			//	return nil, jwt.ErrFailedAuthentication
+			//}
 			return &user, nil
 		},
 	})

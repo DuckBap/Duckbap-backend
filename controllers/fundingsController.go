@@ -43,18 +43,26 @@ func BannerSelect (c *gin.Context) {
 	c.JSON(200, fundings)
 }
 
-func ListSelect (c *gin.Context) {
+func ListSelect (c *gin.Context, id uint) {
 	var bookmark []bookmarks
-	var favorite []bookmarks
+	type Test struct {
+		FavoriteArtist uint
+	}
+	var favorite Test
 	var fundings []listFunding
 	var tmp []listFunding
+	var temp bookmarks
 
-	//user, _ := c.Get("user")
-	//id := user.(*models.User).ID
-	id := 4
+//	user, _ := c.Get("user")
+//	test,_ := middlewares.Auth.GetClaimsFromJWT(c)
+//	id := test["id"]
+//	fmt.Println(id)
+//	id := user.(*models.User).ID
+	//id := 4
 	configs.DB.Table("bookmarks").Where("user_id = ?", id).Order("artist_id").Find(&bookmark)
-	configs.DB.Table("users").Select("favorite_artist").Where("user_id = ?", id).Find(&favorite)
-	bookmark = append(bookmark, favorite...)
+	configs.DB.Table("users").Select("favorite_artist").Where("id = ?", id).Find(&favorite)
+	temp.ArtistID = favorite.FavoriteArtist
+	bookmark = append(bookmark, temp)
 	limit := int(math.Ceil(8.0/float64(len(bookmark))))
 	for i:=0;i<len(bookmark);i++ {
 		configs.DB.Table("fundings").Where("artist_id = ?", bookmark[i].ArtistID).Order("sales_amount desc").Limit(limit).Find(&tmp)
@@ -65,7 +73,7 @@ func ListSelect (c *gin.Context) {
 	})
 	if len(fundings) < 8 {
 		dup := setDuplicates(bookmark)
-		configs.DB.Table("fundings").Not("artist_id", dup).Order("sales_amount desc").Limit(8 - len(fundings)).Find(&tmp)
+		configs.DB.Table("fundings").Where("artist_id Not In (?)", dup).Order("sales_amount desc").Limit(8 - len(fundings)).Find(&tmp)
 		fundings = append(fundings, tmp...)
 	}
 	c.JSON(201, fundings)
@@ -82,7 +90,7 @@ func setDuplicates (bookmark []bookmarks) []uint {
 	var dup []uint
 
 	for i:=0;i<len(bookmark);i++ {
-		dup[i] = bookmark[i].ArtistID
+		dup = append(dup, bookmark[i].ArtistID)
 	}
 	return dup
 }

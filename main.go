@@ -7,24 +7,28 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
+	"gorm.io/gorm/logger"
+	"time"
 	"log"
+	"os"
 )
 
 func main() {
 	var err error
 	r := gin.New()
 
-	//newLogger := logger.New(
-	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-	//	logger.Config{
-	//		SlowThreshold: time.Second,   // Slow SQL threshold
-	//		LogLevel:      logger.Info, // Log level
-	//		Colorful:      false,         // Disable color
-	//	},
-	//)
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold: time.Second,   // Slow SQL threshold
+			LogLevel:      logger.Info, // Log level
+			Colorful:      false,         // Disable color
+		},
+	)
 
 	configs.DB, err = gorm.Open(mysql.Open(configs.DbURL(configs.BuildDBConfig())), &gorm.Config{
-		//Logger: newLogger,
+		Logger: newLogger,
 	})
 	if err != nil {
 		log.Println(err)

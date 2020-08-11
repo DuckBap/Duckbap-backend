@@ -3,7 +3,9 @@ package routers
 import (
 	"fmt"
 	"github.com/DuckBap/Duckbap-backend/controllers"
+	"github.com/DuckBap/Duckbap-backend/middlewares"
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 func SetFundingRouter (r *gin.RouterGroup) {
@@ -13,12 +15,12 @@ func SetFundingRouter (r *gin.RouterGroup) {
 }
 
 func isLogined (c *gin.Context) {
-	_, ok := c.Get("user")
-	if ok {
-		fmt.Println("ok")
-		controllers.ListSelect(c)
+	test,err :=middlewares.Auth.GetClaimsFromJWT(c)
+	if err == nil {
+		stringId := fmt.Sprintf("%v", test["id"])
+		id,_ := strconv.Atoi(stringId)
+		controllers.ListSelect(c, uint(id))
 	} else {
-		fmt.Println("failed")
 		controllers.NotloginListSelect(c)
 	}
 }
