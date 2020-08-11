@@ -20,7 +20,7 @@ func init() {
 			if v, ok := data.(*models.User); ok {
 				return jwt.MapClaims{
 					"id": v.ID,
-					"username": v.UserName,
+					"userName": v.UserName,
 				}
 			}
 			return jwt.MapClaims{}
@@ -29,12 +29,12 @@ func init() {
 			claims := jwt.ExtractClaims(c)
 			return &models.User{
 				Model: gorm.Model{ID:uint(claims["id"].(float64))},
-				UserName: claims["username"].(string),
+				UserName: claims["userName"].(string),
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
 			type Login struct {
-				UserName string `form:"username" json:"username" binding:"required"`
+				UserName string `form:"userName" json:"userName" binding:"required"`
 				Password string `form:"password" json:"password" binding:"required"`
 			}
 			var login Login
@@ -44,7 +44,6 @@ func init() {
 			}
 			username := login.UserName
 			password := login.Password
-			//err := configs.DB.Where("user_name = ? AND password = ?", username, password).First(&user).Error
 			err := configs.DB.Where("user_name = ?", username).First(&user).Error
 			if err != nil {
 				return nil, jwt.ErrFailedAuthentication
