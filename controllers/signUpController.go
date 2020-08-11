@@ -10,12 +10,12 @@ import (
 )
 
 type	InputUserData struct {
-	UserName string		`form:"username" json:"userName"`
+	UserName string		`form:"userName" json:"userName"`
 	Password1 string	`form:"password1" json:"password1"`
 	Password2 string	`form:"password2" json:"password2"`
 	Email 	string		`form:"email" json:"email"`
-	NickName string		`form:"nickname" json:"nickName"`
-	FavoriteArtist uint	`form:"favorite_artist" json:"favoriteArtist"`
+	NickName string		`form:"nickName" json:"nickName"`
+	FavoriteArtist uint	`form:"favoriteArtist" json:"favoriteArtist"`
 }
 
 type	OutputArtistList struct {
@@ -70,7 +70,7 @@ func	SignUp (c *gin.Context) {
 		c.JSON(httpCode, errorPoint)
 		return
 	}
-	//c.JSON(httpCode, user)
+	c.JSON(httpCode, "signUp success")
 }
 
 /* url : Get /sign-up
