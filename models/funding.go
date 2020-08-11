@@ -7,15 +7,15 @@ import (
 
 type Funding struct {
 	gorm.Model
-	SellerID uint `gorm:"not null"`
-	Name string `gorm:"varchar(150);not null;"`
-	Price uint `gorm:"not null"`
-	TargetAmount uint `gorm:"not null"`
-	StartDate time.Time `gorm:"type:date; not null"`
-	EndDate time.Time `gorm:"type:date; not null"`
-	MainImgUrl string `gorm:"varchar(255); unique; not null"`
-	ArtistID uint `gorm:"not null"`
-	SalesAmount uint `gorm:"default:0"`
+	SellerID uint `gorm:"not null" json:"sellerId"`
+	Name string `gorm:"varchar(150);not null;" json:"name"`
+	Price uint `gorm:"not null" json:"price"`
+	TargetAmount uint `gorm:"not null" json:"targetAmount"`
+	StartDate time.Time `gorm:"type:date; not null" json:"startDate"`
+	EndDate time.Time `gorm:"type:date; not null" json:"endDate"`
+	MainImgUrl string `gorm:"varchar(255); unique; not null" json:"mainImgUrl"`
+	ArtistID uint `gorm:"not null" json:"artistId"`
+	SalesAmount uint `gorm:"default:0" json:"salesAmount"`
 	FundingImgs []FundingImg
 	Receipts []Receipt
 	Artist Artist
@@ -23,8 +23,8 @@ type Funding struct {
 
 type FundingImg struct {
 	gorm.Model
-	FundingID uint `gorm:"not null"`
-	Url string `gorm:"type:varchar(255); unique; not null"`
-	IsTitle bool `gorm:"default:false; not null"`
-	Order uint8 `gorm:"not null"`
+	FundingID uint `gorm:"not null" json:"fundingId"`
+	Url string `gorm:"type:varchar(255); unique; not null" json:"url"`
+	IsTitle bool `gorm:"default:false; not null" json:"isTitle"`
+	Order uint8 `gorm:"not null" json:"order"`
 }

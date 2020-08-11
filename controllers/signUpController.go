@@ -10,18 +10,18 @@ import (
 )
 
 type	InputUserData struct {
-	UserName string		`form:"username"`
-	Password1 string	`form:"password1"`
-	Password2 string	`form:"password2"`
-	Email 	string		`form:"email"`
-	NickName string		`form:"nickname"`
-	FavoriteArtist uint	`form:"favorite_artist" json:"favorite_artist"`
+	UserName string		`form:"username" json:"userName"`
+	Password1 string	`form:"password1" json:"password1"`
+	Password2 string	`form:"password2" json:"password2"`
+	Email 	string		`form:"email" json:"email"`
+	NickName string		`form:"nickname" json:"nickName"`
+	FavoriteArtist uint	`form:"favorite_artist" json:"favoriteArtist"`
 }
 
 type	OutputArtistList struct {
-	ID			uint	`json:"artist_id"`
-	Name		string	`json:"artist_name"`
-	ImgUrl		string	`json:"artist_img_url"`
+	ID			uint	`json:"artistId"`
+	Name		string	`json:"artistName"`
+	ImgUrl		string	`json:"artistImgUrl"`
 }
 
 func	inputDataToUser (user *models.User, inputData InputUserData) {
