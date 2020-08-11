@@ -1,13 +1,24 @@
 package routers
 
 import (
-	controller "github.com/DuckBap/Duckbap-backend/controllers"
+	"fmt"
+	"github.com/DuckBap/Duckbap-backend/controllers"
 	"github.com/gin-gonic/gin"
 )
 
-func SetFundingRouter(router *gin.RouterGroup) {
-	// group name : /fundings
-	//router.POST("/", controller.CreateFunding)
-	router.GET("/:fund_id", controller.GetFunding)
-	router.GET("/", controller.GetFundingList)
+func SetFundingRouter (r *gin.RouterGroup) {
+	r.GET("/main/", isLogined)
+	//r.GET("/main-login", controllers.ListSelect)
+	r.GET("/banner", controllers.BannerSelect)
+}
+
+func isLogined (c *gin.Context) {
+	_, ok := c.Get("user")
+	if ok {
+		fmt.Println("ok")
+		controllers.ListSelect(c)
+	} else {
+		fmt.Println("failed")
+		controllers.NotloginListSelect(c)
+	}
 }
