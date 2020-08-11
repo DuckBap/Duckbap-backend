@@ -7,65 +7,45 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"sort"
-	"strconv"
 	"time"
 )
 
 type profile struct {
-	NickName string
-	ArtistID uint
-	ImgUrl string
+	NickName string	`json:"nickName"`
+	ArtistID uint	`json:"artistId"`
+	ImgUrl string	`json:"imgUrl"`
 }
 
 type ranking struct {
-	UserID uint
-	ArtistID uint
-	SellTotal uint
-	BuyTotal uint
-	Total uint
+	UserID uint		`json:"userId"`
+	ArtistID uint	`json:"artistId"`
+	SellTotal uint	`json:"sellTotal"`
+	BuyTotal uint	`json:"buyTotal"`
+	Total uint		`json:"total"`
 }
 
 type buy struct {
-	MainImgUrl string
-	Name string
-	CreatedAt time.Time
-	BuyerID uint
+	MainImgUrl string	`json:"mainImgUrl"`
+	Name string			`json:"name"`
+	CreatedAt time.Time	`json:"createdAt"`
+	BuyerID uint		`json:"buyerId"`
 
 }
 
 type sell struct {
-	MainImgUrl string
-	Name string
-	CreatedAt time.Time
-	SellerID uint
+	MainImgUrl string	`json:"mainImgUrl"`
+	Name string			`json:"name"`
+	CreatedAt time.Time	`json:"createdAt"`
+	SellerID uint		`json:"sellerId"`
 
 }
 
 type bookmark struct {
-	ArtistID uint
-	UserID uint
-	Level int
+	ArtistID uint	`json:"artistId"`
+	UserID uint		`json:"userId"`
+	Level int		`json:"level"`
 }
 
-
-/*
-func getRanking(ranking *ranking, user models.User) {
-	configs.DB.Model(&models.Funding{}).
-		Select("IFNULL(sum(sales_amount * price), 0)").
-		Where("artist_id = ? AND seller_id = ?", user.Artist.ID, user.ID).
-		Scan(&ranking.SellTotal)
-
-	configs.DB.Model(&models.Receipt{}).
-		Select("IFNULL(sum(receipts.amount * fundings.price), 0)").
-		Joins("join fundings  on fundings.id = receipts.funding_id").
-		Where("artist_id = ? AND receipts.buyer_id = ?", user.Artist.ID, user.ID).
-		Scan(&ranking.BuyTotal)
-
-	ranking.Total = ranking.SellTotal + ranking.BuyTotal
-	ranking.UserID = user.ID
-	ranking.ArtistID = user.Artist.ID
-}
-*/
 func getProfile(user models.User) profile {
 	var profile profile
 	profile.ImgUrl = user.Artist.ImgUrl
@@ -225,13 +205,16 @@ func getBookmark(user models.User) []bookmark {
 
 func GetMe(c *gin.Context) {
 	var user models.User
+	/*
 	userid, err := strconv.Atoi(c.PostForm("userid"))
+
 	if err != nil {
 		fmt.Println(err.Error())
 		return
-	}
+	}*/
 
-	if err := configs.DB.First(&user, userid).Error; err != nil {
+	loginUser, _ := c.Get("user") //로그인한 유저 인터페이스 가져오기
+	if err := configs.DB.First(&user, loginUser.(*models.User).ID).Error; err != nil {
 		fmt.Println(err.Error())
 		return
 	}
