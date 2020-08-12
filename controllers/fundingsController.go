@@ -40,7 +40,9 @@ func BannerSelect(c *gin.Context) {
 	var fundings []bannerFunding
 
 	configs.DB.Table("fundings").Order("sales_amount desc").Limit(5).Find(&fundings)
-	c.JSON(200, fundings)
+	c.JSON(http.StatusOK, gin.H {
+		"data": fundings,
+	})
 }
 
 func ListSelect(c *gin.Context, id uint) {
@@ -75,7 +77,9 @@ func ListSelect(c *gin.Context, id uint) {
 		int_rate := int(tmp_rate)
 		fundings[i].AchievementRate = float64(int_rate) / 100
 	}
-	c.JSON(200, fundings)
+	c.JSON(http.StatusOK, gin.H {
+		"data": fundings,
+	})
 }
 
 func NotloginListSelect(c *gin.Context) {
@@ -91,7 +95,9 @@ func NotloginListSelect(c *gin.Context) {
 										"from fundings order by artist_id, sales_amount desc)f," +
 											"(select @vartist:='',@rownum:=0 from dual)b)e " +
 						"where rnum <= 2 order by sales_amount desc limit 8").Scan(&list)
-	c.JSON(http.StatusOK, list)
+	c.JSON(http.StatusOK, gin.H {
+		"data": list,
+	})
 }
 
 func setDuplicates(bookmark []bookmarks) []uint {
