@@ -146,7 +146,7 @@ func GetFundingList(c *gin.Context) {
 	} else {
 		body := setFundingListBody(queryString.ArtistID)
 		c.JSON(http.StatusOK, gin.H{
-			"fundList": body,
+			"data": body,
 		})
 	}
 
