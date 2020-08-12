@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/gin-gonic/gin"
 	"math"
@@ -14,9 +13,9 @@ type listFunding struct {
 	//SellerID uint
 	Name string
 	//Price uint
-	TargetAmount uint `json:"-"`
-	MainImgUrl   string
-	ArtistID uint
+	TargetAmount    uint `json:"-"`
+	MainImgUrl      string
+	ArtistID        uint
 	SalesAmount     uint
 	AchievementRate float64 `json:"achievementRate"`
 }
@@ -55,15 +54,7 @@ func ListSelect(c *gin.Context, id uint) {
 	var fundings []listFunding
 	var tmp []listFunding
 	var temp bookmarks
-	//var items []itemList
-	//var tmp_item itemList
 
-	//	user, _ := c.Get("user")
-	//	test,_ := middlewares.Auth.GetClaimsFromJWT(c)
-	//	id := test["id"]
-	//	fmt.Println(id)
-	//	id := user.(*models.User).ID
-	//id := 4
 	configs.DB.Table("bookmarks").Where("user_id = ?", id).Order("artist_id").Find(&bookmark)
 	configs.DB.Table("users").Select("favorite_artist").Where("id = ?", id).Find(&favorite)
 	temp.ArtistID = favorite.FavoriteArtist
@@ -71,7 +62,6 @@ func ListSelect(c *gin.Context, id uint) {
 	limit := int(math.Ceil(8.0 / float64(len(bookmark))))
 	for i := 0; i < len(bookmark); i++ {
 		configs.DB.Table("fundings").Where("artist_id = ?", bookmark[i].ArtistID).Order("sales_amount desc").Limit(limit).Find(&tmp)
-		fmt.Printf("%v\n",tmp)
 		fundings = append(fundings, tmp...)
 	}
 	sort.Slice(fundings, func(i, j int) bool {
@@ -83,21 +73,11 @@ func ListSelect(c *gin.Context, id uint) {
 		fundings = append(fundings, tmp...)
 	}
 	for i, item := range fundings {
-		//	tmp_item.Name = item.Name
-		//	tmp_item.MainImgUrl = item.MainImgUrl
-		//	tmp_item.AchievementRate = float64(item.SalesAmount) / float64(item.TargetAmount)
-
 		tmp_rate := float64(item.SalesAmount) / float64(item.TargetAmount) * 10000
 		int_rate := int(tmp_rate)
-		//k := float64(10) / float64(3) * 10000
-		//j := int(k)
 		fundings[i].AchievementRate = float64(int_rate) / 100
-
-		fmt.Println("achievement rate : ", fundings[i].AchievementRate)
-		//	items = append(items, tmp_item)
 	}
-	//c.JSON(201, items)
-	c.JSON(201, fundings)
+	c.JSON(200, fundings)
 }
 
 func NotloginListSelect(c *gin.Context) {
