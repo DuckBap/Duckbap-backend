@@ -35,22 +35,21 @@ import (
 - 이미지
 */
 
-type fundingResBody struct{
-	ID					uint		`json:"id"`
-	NickName 			string		`json:"sellerName"`
-	Name 				string		`json:"fundName"`
-	Price 				uint		`json:"price"`
-	TargetAmount 		uint		`json:"targetAmount"`
-	SalesAmount 		uint		`json:"salesAmount"`
-	StartDate 			time.Time	`json:"startDate"`
-	EndDate 			time.Time	`json:"endDate"`
-	ArtistName 			string		`json:"artistName"`
-	AchievementRate 	float64		`json:"achievementRate"`	//salesAmount / Price
-	Dday 				uint		`json:"dDay"`
-	FundingImgUrls 		[]string	`json:"fundingImgUrls"`
-	DetailedImgUrl 		string		`json:"detailedImgUrl"`
+type fundingResBody struct {
+	ID              uint      `json:"id"`
+	NickName        string    `json:"sellerName"`
+	Name            string    `json:"fundName"`
+	Price           uint      `json:"price"`
+	TargetAmount    uint      `json:"targetAmount"`
+	SalesAmount     uint      `json:"salesAmount"`
+	StartDate       time.Time `json:"startDate"`
+	EndDate         time.Time `json:"endDate"`
+	ArtistName      string    `json:"artistName"`
+	AchievementRate float64   `json:"achievementRate"` //salesAmount / Price
+	Dday            uint      `json:"dDay"`
+	FundingImgUrls  []string  `json:"fundingImgUrls"`
+	DetailedImgUrl  string    `json:"detailedImgUrl"`
 }
-
 
 //test
 //func CreateFunding(c *gin.Context) {
@@ -72,22 +71,22 @@ type fundingResBody struct{
 //}
 
 func GetFunding(c *gin.Context) {
-	fundID := c.Param("fund_id")
+	fundID := c.Param("fund-id")
 
 	body, err := setFundingBody(fundID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"mgs": "no funding",
+			"msg": "no funding",
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{
-			"msg": "get funding",
+			"msg":     "get funding",
 			"funding": body,
 		})
 	}
 }
 
-func setFundingBody(fundID string) (*fundingResBody, error){
+func setFundingBody(fundID string) (*fundingResBody, error) {
 	body := fundingResBody{}
 	var titleImg string
 
@@ -124,16 +123,16 @@ func setFundingBody(fundID string) (*fundingResBody, error){
 }
 
 type queryString struct {
-	ArtistID 			uint	`form:"artist-id" binding:"required"`
+	ArtistID uint `form:"artist-id" binding:"required"`
 }
 
 type fundingListResBody struct {
-	ID					uint		`json:"id"`
-	NickName 			string		`json:"sellerName"`
-	Name 				string		`json:"fundingName"`
-	MainImgUrl 			string		`json:"mainImgUrl"`
-	DDay 				int			`json:"dDay"`
-	AchievementRate 	float64		`json:"achievementRate"`
+	ID              uint    `json:"id"`
+	NickName        string  `json:"sellerName"`
+	Name            string  `json:"fundingName"`
+	MainImgUrl      string  `json:"mainImgUrl"`
+	DDay            int     `json:"dDay"`
+	AchievementRate float64 `json:"achievementRate"`
 }
 
 func GetFundingList(c *gin.Context) {
@@ -147,17 +146,17 @@ func GetFundingList(c *gin.Context) {
 	} else {
 		body := setFundingListBody(queryString.ArtistID)
 		c.JSON(http.StatusOK, gin.H{
-			"fundList": body,
+			"data": body,
 		})
 	}
 
 }
 
-func setFundingListBody(artistID uint) []fundingListResBody{
+func setFundingListBody(artistID uint) []fundingListResBody {
 	body := []fundingListResBody{}
 
 	configs.DB.Debug().Table("fundings").Joins("inner join users on fundings.seller_id = users.id").
-		Select("fundings.id, users.nick_name, fundings.name, fundings.main_img_url, " +
+		Select("fundings.id, users.nick_name, fundings.name, fundings.main_img_url, "+
 			"fundings.end_date - fundings.start_date as d_day, fundings.sales_amount / fundings.target_amount * 100 as achievement_rate").
 		Where("fundings.artist_id = ? and fundings.deleted_at is null", artistID).Order("d_day").
 		Scan(&body)

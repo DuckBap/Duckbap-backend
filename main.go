@@ -7,12 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+
 	"log"
 )
 
 func main() {
 	var err error
-	r := gin.New()
+	r := gin.Default()
 
 	//newLogger := logger.New(
 	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -32,9 +33,11 @@ func main() {
 	configs.DB.AutoMigrate(&models.User{}, &models.Funding{}, &models.FundingImg{},
 		&models.Artist{}, &models.Receipt{}, &models.Entertainment{})
 
-	rGroup := r.Group("/")
-	routers.SignUpRouter(rGroup)
-	routers.SetUserRouters(rGroup)
+	rGroup := r.Group("/v1")
+	routers.SignUpRouter(rGroup.Group("/accounts"))
+	routers.SetUserRouters(rGroup.Group("/users"))
+	routers.SetArtistRouter(rGroup.Group("/artists"))
 	routers.SetFundingRouter(rGroup.Group("/fundings"))
+	routers.SetEnterRouter(rGroup.Group("/ents"))
 	r.Run(":8080")
 }
