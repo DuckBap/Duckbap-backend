@@ -5,6 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetArtistRouter (router *gin.RouterGroup) {
-	router.GET("/", controllers.ShowArtists)
+func SetArtistRouter(router *gin.RouterGroup) {
+	router.GET("", controllers.ShowArtists)
 }
