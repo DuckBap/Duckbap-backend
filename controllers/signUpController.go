@@ -6,25 +6,18 @@ import (
 	"github.com/DuckBap/Duckbap-backend/permissions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
 )
 
-type	InputUserData struct {
-	UserName string		`form:"userName" json:"userName"`
-	Password1 string	`form:"password1" json:"password1"`
-	Password2 string	`form:"password2" json:"password2"`
-	Email 	string		`form:"email" json:"email"`
-	NickName string		`form:"nickName" json:"nickName"`
-	FavoriteArtist uint	`form:"favoriteArtist" json:"favoriteArtist"`
+type InputUserData struct {
+	UserName       string `form:"userName" json:"userName"`
+	Password1      string `form:"password1" json:"password1"`
+	Password2      string `form:"password2" json:"password2"`
+	Email          string `form:"email" json:"email"`
+	NickName       string `form:"nickName" json:"nickName"`
+	FavoriteArtist uint   `form:"favoriteArtist" json:"favoriteArtist"`
 }
 
-type	OutputArtistList struct {
-	ID			uint	`json:"artistId"`
-	Name		string	`json:"artistName"`
-	ImgUrl		string	`json:"artistImgUrl"`
-}
-
-func	inputDataToUser (user *models.User, inputData InputUserData) {
+func inputDataToUser(user *models.User, inputData InputUserData) {
 	(*user).UserName = inputData.UserName
 	(*user).Password = inputData.Password1
 	(*user).NickName = inputData.NickName
@@ -37,12 +30,12 @@ func hash(pwd string) string {
 	return string(digest)
 }
 
-func	SignUp (c *gin.Context) {
-	var	user		models.User
-	var	inputData	InputUserData
-	var	errorPoint	string
-	var httpCode	int
-	var	checker		bool
+func SignUp(c *gin.Context) {
+	var user models.User
+	var inputData InputUserData
+	var errorPoint string
+	var httpCode int
+	var checker bool
 
 	err := c.ShouldBind(&inputData)
 	if err != nil {
@@ -77,22 +70,3 @@ func	SignUp (c *gin.Context) {
 ** 아티스트의 목록을 보내줘서 보여줘야 한다.
 ** 이유 : 회원 가입시 필수로 최애 아티스트를 선택해야 되기 때문이다.
  */
-func	ShowArtists (c *gin.Context) {
-	var artist		models.Artist
-	var	artists		[]OutputArtistList
-	var	errorPoint	string
-	var httpCode	int
-
-	tx := configs.DB.Model(&artist).Select("id, name, img_url").Scan(&artists)
-	if tx.Error != nil {
-		errorPoint = tx.Error.Error()
-		httpCode = http.StatusNotFound
-	} else {
-		httpCode = http.StatusOK
-	}
-	if errorPoint != "" {
-		c.JSON(httpCode, errorPoint)
-		return
-	}
-	c.JSON(httpCode, artists)
-}
