@@ -13,7 +13,7 @@ import (
 
 func main() {
 	var err error
-	r := gin.New()
+	r := gin.Default()
 
 	//newLogger := logger.New(
 	//	log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -38,5 +38,6 @@ func main() {
 	routers.SetUserRouters(rGroup.Group("/users"))
 	routers.SetArtistRouter(rGroup.Group("/artists"))
 	routers.SetFundingRouter(rGroup.Group("/fundings"))
+	routers.SetEnterRouter(rGroup.Group("/ents"))
 	r.Run(":8080")
 }
