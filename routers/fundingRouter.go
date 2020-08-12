@@ -10,9 +10,8 @@ import (
 
 func SetFundingRouter (router *gin.RouterGroup) {
 	router.GET("/main", isLogined)
-	//r.GET("/main-login", controllers.ListSelect)
 	router.GET("/banner", controllers.BannerSelect)
-	router.GET("/:fund-id", controllers.GetFunding)
+	router.GET("/fund/:fund-id", controllers.GetFunding)
 	router.GET("", controllers.GetFundingList)
 }
 
