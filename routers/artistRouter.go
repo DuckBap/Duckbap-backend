@@ -6,5 +6,5 @@ import (
 )
 
 func SetArtistRouter (router *gin.RouterGroup) {
-	router.GET("/", controllers.ShowArtists)
+	router.GET("", controllers.ShowArtists)
 }
