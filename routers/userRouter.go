@@ -7,9 +7,8 @@ import (
 
 )
 
-func SetUserRouters(r *gin.RouterGroup) {
-	r.POST("/login", middlewares.Auth.LoginHandler)
-	r.GET("/me", middlewares.Auth.MiddlewareFunc(), controllers.GetMe)
+func SetUserRouters(router *gin.RouterGroup) {
+	router.GET("/me", middlewares.Auth.MiddlewareFunc(), controllers.GetMe)
 	//r.GET("/me", middlewares.Auth.MiddlewareFunc(), <HANDLER>)
 }
 

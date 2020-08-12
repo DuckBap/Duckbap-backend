@@ -71,12 +71,12 @@ type fundingResBody struct {
 //}
 
 func GetFunding(c *gin.Context) {
-	fundID := c.Param("fund_id")
+	fundID := c.Param("fund-id")
 
 	body, err := setFundingBody(fundID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"mgs": "no funding",
+			"msg": "no funding",
 		})
 	} else {
 		c.JSON(http.StatusOK, gin.H{

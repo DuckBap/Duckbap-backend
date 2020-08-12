@@ -8,10 +8,12 @@ import (
 	"strconv"
 )
 
-func SetFundingRouter (r *gin.RouterGroup) {
-	r.GET("/main/", isLogined)
+func SetFundingRouter (router *gin.RouterGroup) {
+	router.GET("/main", isLogined)
 	//r.GET("/main-login", controllers.ListSelect)
-	r.GET("/banner", controllers.BannerSelect)
+	router.GET("/banner", controllers.BannerSelect)
+	router.GET("/:fund-id", controllers.GetFunding)
+	router.GET("", controllers.GetFundingList)
 }
 
 func isLogined (c *gin.Context) {
