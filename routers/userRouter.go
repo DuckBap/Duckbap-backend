@@ -9,6 +9,5 @@ import (
 
 func SetUserRouters(router *gin.RouterGroup) {
 	router.GET("/me", middlewares.Auth.MiddlewareFunc(), controllers.GetMe)
-	//r.GET("/me", middlewares.Auth.MiddlewareFunc(), <HANDLER>)
 }
 
