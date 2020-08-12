@@ -9,14 +9,12 @@ import (
 )
 
 type listFunding struct {
-	ID uint
-	//SellerID uint
-	Name string
-	//Price uint
-	TargetAmount    uint `json:"-"`
+	ID              uint
+	Name            string
+	TargetAmount    uint	`json:"-"`
 	MainImgUrl      string
-	ArtistID        uint `json:"-"`
-	SalesAmount     uint `json:"-"`
+	ArtistID        uint    `json:"-"`
+	SalesAmount     uint    `json:"-"`
 	AchievementRate float64 `json:"achievementRate"`
 }
 
@@ -86,13 +84,13 @@ func NotloginListSelect(c *gin.Context) {
 	configs.DB.Raw("select id, main_img_url, name, (@achievement_rate:=truncate(100 * sales_amount/target_amount,2))achievement_rate " +
 						"from (" +
 								"select f.*," +
-									"(case @vartist when f.artist_id then @rownum:=@rownum+1 else @rownum:=1 end)rnum," +
-									"(@vartist:=f.artist_id)vartist " +
+										"(case @vartist when f.artist_id then @rownum:=@rownum+1 else @rownum:=1 end)rnum," +
+										"(@vartist:=f.artist_id)vartist " +
 								"from(" +
-									"select * " +
-									"from fundings order by artist_id, sales_amount desc)f," +
-									"(select @vartist:='',@rownum:=0 from dual)b)e " +
-									"where rnum <= 2 order by sales_amount desc limit 8").Scan(&list)
+										"select * " +
+										"from fundings order by artist_id, sales_amount desc)f," +
+											"(select @vartist:='',@rownum:=0 from dual)b)e " +
+						"where rnum <= 2 order by sales_amount desc limit 8").Scan(&list)
 	c.JSON(http.StatusOK, list)
 }
 
