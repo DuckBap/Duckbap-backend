@@ -11,7 +11,8 @@ import (
 func SetFundingRouter(router *gin.RouterGroup) {
 	router.GET("/:fund-id", brachFunding)
 	router.GET("", controllers.GetFundingList)
-	router.POST("",controllers.CreateFund)
+	//router.POST("",controllers.CreateFund)
+	router.POST("/:fund-id", createBranchFunding)
 }
 
 func isLogined(c *gin.Context) {
@@ -33,5 +34,14 @@ func brachFunding(c *gin.Context) {
 		controllers.BannerSelect(c)
 	} else {
 		controllers.GetFunding(c)
+	}
+}
+
+func createBranchFunding(c *gin.Context) {
+	param := c.Param("fund-id")
+	if param == "funding" {
+		controllers.CreateFund(c)
+	} else if param == "fundingimg" {
+		controllers.CreateFundingImg(c)
 	}
 }
