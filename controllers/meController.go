@@ -307,3 +307,16 @@ func GetMe(c *gin.Context) {
 		"data": data,
 	})
 }
+
+type bookmark struct {
+	UserID   uint `json:"user_id"`
+	ArtistID uint `json:"artist_id"`
+}
+
+func CreateBookmark(c *gin.Context) {
+	var bookmarkrecord bookmark
+	c.BindJSON(&bookmarkrecord)
+
+	configs.DB.Create(&bookmarkrecord)
+	c.JSON(http.StatusOK, bookmarkrecord)
+}
