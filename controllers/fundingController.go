@@ -199,3 +199,11 @@ func CreateFund(c *gin.Context) {
 	configs.DB.Create(&funding)
 	c.JSON(http.StatusOK, funding)
 }
+
+func CreateFundingImg(c *gin.Context) {
+	var img models.FundingImg
+	c.BindJSON(&img)
+
+	configs.DB.Create(&img)
+	c.JSON(http.StatusOK, img)
+}
