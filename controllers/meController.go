@@ -314,11 +314,18 @@ type bookmark struct {
 }
 
 func CreateBookmark(c *gin.Context) {
-	var bookmarkrecord bookmark
-	c.BindJSON(&bookmarkrecord)
+	var record bookmark
+	c.BindJSON(&record)
 
-	configs.DB.Create(&bookmarkrecord)
-	c.JSON(http.StatusOK, bookmarkrecord)
+	var cnt uint
+	configs.DB.Table("bookmarks").Select("count(*)").Where("user_id = ?", record.UserID).Find(&cnt)
+
+	if cnt < 3 {
+		configs.DB.Create(&record)
+		c.JSON(http.StatusOK, record)
+	} else {
+		c.String(http.StatusOK, "full")
+	}
 }
 
 func CreateReceipts(c *gin.Context) {
