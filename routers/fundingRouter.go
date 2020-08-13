@@ -9,7 +9,7 @@ import (
 )
 
 func SetFundingRouter(router *gin.RouterGroup) {
-	router.GET("/:fund-id", brachFunding)
+	router.GET("/:fund-id", branchFunding)
 	router.GET("", controllers.GetFundingList)
 }
 
@@ -24,7 +24,7 @@ func isLogined(c *gin.Context) {
 	}
 }
 
-func brachFunding(c *gin.Context) {
+func branchFunding(c *gin.Context) {
 	param := c.Param("fund-id")
 	if param == "main" {
 		isLogined(c)
