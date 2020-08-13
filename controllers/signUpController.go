@@ -4,17 +4,15 @@ import (
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/DuckBap/Duckbap-backend/permissions"
-	"github.com/appleboy/gin-jwt/v2"
+	//"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 	"net/http"
 )
 
 type InputUserData struct {
 	UserName       string `form:"userName" json:"userName"`
-	//Password1      string `form:"password1" json:"password1"`
-	Password      string `form:"password" json:"password"`
+	Password1      string `form:"password1" json:"password1"`
 	Password2      string `form:"password2" json:"password2"`
 	Email          string `form:"email" json:"email"`
 	NickName       string `form:"nickName" json:"nickName"`
@@ -23,8 +21,7 @@ type InputUserData struct {
 
 func inputDataToUser(user *models.User, inputData InputUserData) {
 	(*user).UserName = inputData.UserName
-	(*user).Password = inputData.Password
-	//(*user).Password = inputData.Password1
+	(*user).Password = inputData.Password1
 	(*user).NickName = inputData.NickName
 	(*user).Email = inputData.Email
 	(*user).FavoriteArtist = inputData.FavoriteArtist
@@ -49,6 +46,7 @@ func SignUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H {
 			"err": errorMap,
 		})
+		c.Abort()
 		return
 	}
 	errorMap, httpCode, checker = permissions.IsEmpty(&inputData)
@@ -56,6 +54,7 @@ func SignUp(c *gin.Context) {
 		c.JSON(httpCode, gin.H {
 			"err": errorMap,
 		})
+		c.Abort()
 		return
 	}
 	inputDataToUser(&user, inputData)
@@ -64,6 +63,7 @@ func SignUp(c *gin.Context) {
 		c.JSON(httpCode, gin.H {
 			"err": errorMap,
 		})
+		c.Abort()
 		return
 	}
 	password := hash(user.Password)
@@ -74,66 +74,8 @@ func SignUp(c *gin.Context) {
 		c.JSON(httpCode, gin.H {
 			"err": errorMap,
 		})
+		c.Abort()
 		return
 	}
-	//token := autoLogin(user)
-	//fmt.Println("string token  ",token)
-	//c.SetCookie("user", token, 3600, "/", "localhost", false, true)
-	//token, err := autoLogin(c, user)
-	//if err != nil {
-	//	return
-	//}
-	//c.JSON(httpCode, token)
-	//c.JSON(httpCode, user)
-	//b := a(c, user)
-	//b.LoginHandler(c)
+	c.Set("user", &user)
 }
-
-func a(c *gin.Context, user models.User) *jwt.GinJWTMiddleware{
-	Auth, _ := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:       "Duckbap",
-		Key:         []byte("NEED SECRET KEY"),
-		IdentityKey: "user",
-		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*models.User); ok {
-				return jwt.MapClaims{
-					"id": v.ID,
-					"userName": v.UserName,
-				}
-			}
-			return jwt.MapClaims{}
-		},
-		IdentityHandler: func(c *gin.Context) interface{} {
-			claims := jwt.ExtractClaims(c)
-			return &models.User{
-				Model: gorm.Model{ID:uint(claims["id"].(float64))},
-				UserName: claims["userName"].(string),
-			}
-		},
-		Authenticator: func(c *gin.Context) (interface{}, error) {
-			return &user, nil
-		},
-	})
-	return Auth
-}
-//func	autoLogin(userStruct models.User) string {
-//	mySigningKey := []byte("NEED SECRET KEY")
-//	tmp := jwt.MapClaims{
-//		"id": userStruct.ID,
-//		"userName": userStruct.UserName,
-//	}
-//	type MyCustomClaims struct {
-//		Foo string `json:"foo"`
-//		jwt.MapClaims
-//	}
-//	// Create the Claims
-//	claims := MyCustomClaims{
-//		"bar",
-//		tmp,
-//	}
-//	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-//	fmt.Println("token :: ",token)
-//	ss,_ := token.SignedString(mySigningKey)
-//	fmt.Printf("string   %v",ss)
-//	return ss
-//}

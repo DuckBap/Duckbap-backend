@@ -74,7 +74,7 @@ func	makeErrorStruct(err error) (ErrorStruct, error) {
 	}
 	return errorStruct, marshalingError
 }
-//--------------------------------------------------------------------------------
+
 func	FindErrorPoint(err error) (map[string]string, int){
 	var errorPoint	string
 	var httpCode	int
@@ -183,8 +183,7 @@ func	isImpossibleValue(elements reflect.Value, index int) (map[string]string, bo
 	elementName := elements.Type().Field(idx).Name
 	errorMap := make(map[string]string)
 	if elementName == "Password2" {
-		//if elements.Type().Field(idx - 1).Name == "Password1" {
-		if elements.Type().Field(idx - 1).Name == "Password" {
+		if elements.Type().Field(idx - 1).Name == "Password1" {
 			value = fmt.Sprintf("%v",elements.Field(idx).Interface())
 			nextValue = fmt.Sprintf("%v",elements.Field(idx - 1).Interface())
 			if value != nextValue {
