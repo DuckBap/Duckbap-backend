@@ -12,6 +12,12 @@ type Entertainment struct {
 	ImgUrl string `json:"imgUrl"`
 }
 
+// @Summary 엔터테인먼트 리스트
+// @Description <br>엔터테인먼트 리스트를 반환합니다.<br>
+// @Accept  json
+// @Produce  json
+// @Router /ents/ [get]
+// @Success 200 {array} Entertainment
 func EnterList(c *gin.Context) {
 	var ents []Entertainment
 	configs.DB.Table("entertainments").Find(&ents)

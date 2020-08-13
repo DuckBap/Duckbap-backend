@@ -1,0 +1,60 @@
+definitions:
+  controllers.Entertainment:
+    properties:
+      entId:
+        type: integer
+      imgUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  controllers.OutputArtistList:
+    properties:
+      artistId:
+        type: integer
+      artistImgUrl:
+        type: string
+      artistName:
+        type: string
+      entId:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /artists/:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        <br>아티스트 리스트를 반환합니다.<br>
+        쿼리스트링이 존재하지 않을 경우 모든 아티스트를 반환합니다.<br>
+        쿼리스트링이 존재하는 경우 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.<br>
+        쿼리스트링 종류
+        1. /v1/artists?ent-id=()
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.OutputArtistList'
+            type: array
+      summary: 아티스트 리스트
+  /ents/:
+    get:
+      consumes:
+      - application/json
+      description: <br>엔터테인먼트 리스트를 반환합니다.<br>
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Entertainment'
+            type: array
+      summary: 엔터테인먼트 리스트
+swagger: "2.0"
