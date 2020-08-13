@@ -195,6 +195,7 @@ type fundingstringBody struct {
 func CreateFund(c *gin.Context) {
 	var funding models.Funding
 	c.BindJSON(&funding)
+
 	configs.DB.Create(&funding)
 	c.JSON(http.StatusOK, funding)
 }
