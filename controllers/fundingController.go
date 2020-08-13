@@ -177,7 +177,7 @@ func isArtistExist(artistID uint) bool {
 }
 
 type fundingstringBody struct {
-	ID             uint     `json:"id"`
+	ID              uint     `json:"id"`
 	NickName        string   `json:"sellerName"`
 	Name            string   `json:"fundName"`
 	Price           uint     `json:"price"`
@@ -195,7 +195,6 @@ type fundingstringBody struct {
 func CreateFund(c *gin.Context) {
 	var funding models.Funding
 	c.BindJSON(&funding)
-
 	configs.DB.Create(&funding)
 	c.JSON(http.StatusOK, funding)
 }
