@@ -320,3 +320,11 @@ func CreateBookmark(c *gin.Context) {
 	configs.DB.Create(&bookmarkrecord)
 	c.JSON(http.StatusOK, bookmarkrecord)
 }
+
+func CreateReceipts(c *gin.Context) {
+	var receipt models.Receipt
+	c.BindJSON(&receipt)
+
+	configs.DB.Create(&receipt)
+	c.JSON(http.StatusOK, receipt)
+}
