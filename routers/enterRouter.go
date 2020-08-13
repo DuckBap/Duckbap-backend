@@ -6,5 +6,5 @@ import (
 )
 
 func	SetEnterRouter(router *gin.RouterGroup) {
-	router.GET("/",controllers.EnterList)
+	router.GET("",controllers.EnterList)
 }
