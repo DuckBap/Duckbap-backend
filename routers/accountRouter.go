@@ -7,6 +7,6 @@ import (
 )
 
 func SignUpRouter(router *gin.RouterGroup) {
-	router.POST("/sign-up", controllers.SignUp)
+	router.POST("/sign-up", controllers.SignUp, middlewares.Auth.LoginHandler)
 	router.POST("/login", middlewares.Auth.LoginHandler)
 }
