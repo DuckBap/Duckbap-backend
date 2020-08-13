@@ -17,6 +17,11 @@ type InputUserData struct {
 	FavoriteArtist uint   `form:"favoriteArtist" json:"favoriteArtist"`
 }
 
+type ErrorObject struct {
+	ErrorPoint		string	`json:"errorPoint"`
+	ErrorMessage	string	`json:"errorMessage"`
+}
+
 func inputDataToUser(user *models.User, inputData InputUserData) {
 	(*user).UserName = inputData.UserName
 	(*user).Password = inputData.Password1
@@ -31,42 +36,49 @@ func hash(pwd string) string {
 }
 
 func SignUp(c *gin.Context) {
-	var user models.User
-	var inputData InputUserData
-	var errorPoint string
-	var httpCode int
-	var checker bool
+	var user 		models.User
+	var inputData	InputUserData
+	var	errorObj	ErrorObject
+	//var errorPoint	string
+	var httpCode	int
+	var checker		bool
 
 	err := c.ShouldBind(&inputData)
 	if err != nil {
-		errorPoint = permissions.AnalyzeErrorMessage(err.Error())
-		errorPoint += " doesn't exist"
-		c.JSON(400, errorPoint)
+		errorObj.ErrorPoint = permissions.AnalyzeErrorMessage(err.Error())
+		errorObj.ErrorMessage = "허용 되지 않는 값 입니다."
+		c.JSON(400, gin.H {
+			"err": errorObj,
+		})
 		return
 	}
-	errorPoint, httpCode, checker = permissions.IsEmpty(&inputData)
+	errorObj.ErrorPoint, httpCode, checker = permissions.IsEmpty(&inputData)
 	if checker {
-		c.JSON(httpCode, errorPoint)
+		errorObj.ErrorMessage = "비어 있는 값 입니다."
+		c.JSON(httpCode, gin.H {
+			"err": errorObj,
+		})
 		return
 	}
 	inputDataToUser(&user, inputData)
-	errorPoint, httpCode, checker = permissions.IsExist(&user)
+	errorObj.ErrorPoint, httpCode, checker = permissions.IsExist(&user)
 	if checker {
-		c.JSON(httpCode, errorPoint)
+		errorObj.ErrorMessage = "이미 존재한 값 입니다."
+		c.JSON(httpCode, gin.H {
+			"err": errorObj,
+		})
 		return
 	}
 	password := hash(user.Password)
 	user.Password = password
 	tx := configs.DB.Create(&user)
 	if tx.Error != nil {
-		errorPoint, httpCode = permissions.FindErrorPoint(tx.Error)
-		c.JSON(httpCode, errorPoint)
+		errorObj.ErrorPoint, httpCode = permissions.FindErrorPoint(tx.Error)
+		errorObj.ErrorMessage = "잘못된 값 입니다."
+		c.JSON(httpCode, gin.H {
+			"err": errorObj,
+		})
 		return
 	}
 	c.JSON(httpCode, "signUp success")
 }
-
-/* url : Get /sign-up
-** 아티스트의 목록을 보내줘서 보여줘야 한다.
-** 이유 : 회원 가입시 필수로 최애 아티스트를 선택해야 되기 때문이다.
- */

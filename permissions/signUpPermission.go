@@ -165,7 +165,7 @@ func	isImpossibleValue(elements reflect.Value, index *int) (string, bool) {
 			value = fmt.Sprintf("%v",elements.Field(idx).Interface())
 			nextValue = fmt.Sprintf("%v",elements.Field(idx - 1).Interface())
 			if value != nextValue {
-				impossiblePoint = "different password "
+				impossiblePoint = "different password"
 				*index++
 				isImpossible = true
 			}
