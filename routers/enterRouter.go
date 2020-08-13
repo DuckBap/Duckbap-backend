@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func	SetEnterRouter(router *gin.RouterGroup) {
-	router.GET("",controllers.EnterList)
+func SetEnterRouter(router *gin.RouterGroup) {
+	router.GET("", controllers.EnterList)
+	router.POST("", controllers.CreateEnter)
 }
