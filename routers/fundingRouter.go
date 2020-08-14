@@ -5,6 +5,7 @@ import (
 	"github.com/DuckBap/Duckbap-backend/controllers"
 	"github.com/DuckBap/Duckbap-backend/middlewares"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 )
 
@@ -43,5 +44,7 @@ func createBranchFunding(c *gin.Context) {
 		controllers.CreateFund(c)
 	} else if param == "fundingimg" {
 		controllers.CreateFundingImg(c)
+	} else {
+		c.JSON(http.StatusNotFound,"not validate url")
 	}
 }
