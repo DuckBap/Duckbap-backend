@@ -17,7 +17,7 @@ type Entertainment struct {
 // @Description <br>엔터테인먼트 리스트를 반환합니다.<br>
 // @Accept  json
 // @Produce  json
-// @Router /ents/ [get]
+// @Router /ents [get]
 // @Success 200 {array} Entertainment
 func EnterList(c *gin.Context) {
 	var ents []Entertainment
