@@ -7,4 +7,5 @@ import (
 
 func SetArtistRouter (router *gin.RouterGroup) {
 	router.GET("", controllers.ShowArtists)
+	router.POST("",controllers.CreateArtist)
 }

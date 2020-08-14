@@ -84,6 +84,7 @@ func GetFunding(c *gin.Context) {
 			"funding": body,
 		})
 	}
+
 }
 
 func setFundingBody(fundID string) (*fundingResBody, error) {
@@ -175,6 +176,34 @@ func isArtistExist(artistID uint) bool {
 
 }
 
-func BuyFunding(c *gin.Context) {
+type fundingstringBody struct {
+	ID              uint     `json:"id"`
+	NickName        string   `json:"sellerName"`
+	Name            string   `json:"fundName"`
+	Price           uint     `json:"price"`
+	TargetAmount    uint     `json:"targetAmount"`
+	SalesAmount     uint     `json:"salesAmount"`
+	StartDate       string   `json:"startDate"`
+	EndDate         string   `json:"endDate"`
+	ArtistName      string   `json:"artistName"`
+	AchievementRate float64  `json:"achievementRate"` //salesAmount / Price
+	Dday            uint     `json:"dDay"`
+	FundingImgUrls  []string `json:"fundingImgUrls"`
+	DetailedImgUrl  string   `json:"detailedImgUrl"`
+}
 
+func CreateFund(c *gin.Context) {
+	var funding models.Funding
+	c.BindJSON(&funding)
+
+	configs.DB.Create(&funding)
+	c.JSON(http.StatusOK, funding)
+}
+
+func CreateFundingImg(c *gin.Context) {
+	var img models.FundingImg
+	c.BindJSON(&img)
+
+	configs.DB.Create(&img)
+	c.JSON(http.StatusOK, img)
 }

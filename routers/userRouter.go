@@ -8,5 +8,6 @@ import (
 
 func SetUserRouters(router *gin.RouterGroup) {
 	router.GET("/me", middlewares.Auth.MiddlewareFunc(), controllers.GetMe)
+	router.POST("/bookmark", controllers.CreateBookmark)
+	router.POST("/receipt", controllers.CreateReceipts)
 }
-

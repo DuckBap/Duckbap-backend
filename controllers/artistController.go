@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
+	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -40,4 +41,12 @@ func ArtistList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": list,
 	})
+}
+
+func CreateArtist(c *gin.Context) {
+	var artist models.Artist
+	c.BindJSON(&artist)
+
+	configs.DB.Create(&artist)
+	c.JSON(http.StatusOK, artist)
 }

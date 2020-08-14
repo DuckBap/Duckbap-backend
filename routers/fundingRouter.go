@@ -11,6 +11,7 @@ import (
 func SetFundingRouter(router *gin.RouterGroup) {
 	router.GET("/:fund-id", brachFunding)
 	router.GET("", controllers.GetFundingList)
+	router.POST("",controllers.CreateFund)
 }
 
 func isLogined(c *gin.Context) {
