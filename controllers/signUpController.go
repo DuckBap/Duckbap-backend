@@ -6,6 +6,7 @@ import (
 	"github.com/DuckBap/Duckbap-backend/permissions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
 )
 
 type InputUserData struct {
@@ -30,43 +31,58 @@ func hash(pwd string) string {
 	return string(digest)
 }
 
+func filterStruct(data *models.User) {
+	(*data).FavoriteArtist = 0
+	(*data).Password = ""
+	(*data).NickName = ""
+	(*data).Email = ""
+}
+
 func SignUp(c *gin.Context) {
-	var user models.User
-	var inputData InputUserData
-	var errorPoint string
-	var httpCode int
-	var checker bool
+	var user 		models.User
+	var inputData	InputUserData
+	var httpCode	int
+	var checker		bool
 
 	err := c.ShouldBind(&inputData)
+	errorMap := make(map[string]string)
 	if err != nil {
-		errorPoint = permissions.AnalyzeErrorMessage(err.Error())
-		errorPoint += " doesn't exist"
-		c.JSON(400, errorPoint)
+		errorPoint := permissions.AnalyzeErrorMessage(err.Error())
+		errorMap[errorPoint] = "잘못된 값입니다."
+		c.JSON(http.StatusBadRequest, gin.H {
+			"err": errorMap,
+		})
+		c.Abort()
 		return
 	}
-	errorPoint, httpCode, checker = permissions.IsEmpty(&inputData)
+	errorMap, httpCode, checker = permissions.IsEmpty(&inputData)
 	if checker {
-		c.JSON(httpCode, errorPoint)
+		c.JSON(httpCode, gin.H {
+			"err": errorMap,
+		})
+		c.Abort()
 		return
 	}
 	inputDataToUser(&user, inputData)
-	errorPoint, httpCode, checker = permissions.IsExist(&user)
+	errorMap, httpCode, checker = permissions.IsExist(&user)
 	if checker {
-		c.JSON(httpCode, errorPoint)
+		c.JSON(httpCode, gin.H {
+			"err": errorMap,
+		})
+		c.Abort()
 		return
 	}
 	password := hash(user.Password)
 	user.Password = password
 	tx := configs.DB.Create(&user)
 	if tx.Error != nil {
-		errorPoint, httpCode = permissions.FindErrorPoint(tx.Error)
-		c.JSON(httpCode, errorPoint)
+		errorMap, httpCode = permissions.FindErrorPoint(tx.Error)
+		c.JSON(httpCode, gin.H {
+			"err": errorMap,
+		})
+		c.Abort()
 		return
 	}
-	c.JSON(httpCode, "signUp success")
+	filterStruct(&user)
+	c.Set("user", &user)
 }
-
-/* url : Get /sign-up
-** 아티스트의 목록을 보내줘서 보여줘야 한다.
-** 이유 : 회원 가입시 필수로 최애 아티스트를 선택해야 되기 때문이다.
- */

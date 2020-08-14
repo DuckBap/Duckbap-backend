@@ -307,3 +307,31 @@ func GetMe(c *gin.Context) {
 		"data": data,
 	})
 }
+
+type bookmark struct {
+	UserID   uint `json:"userId"`
+	ArtistID uint `json:"artistId"`
+}
+
+func CreateBookmark(c *gin.Context) {
+	var record bookmark
+	c.BindJSON(&record)
+
+	var cnt uint
+	configs.DB.Table("bookmarks").Select("count(*)").Where("user_id = ?", record.UserID).Find(&cnt)
+
+	if cnt < 3 {
+		configs.DB.Create(&record)
+		c.JSON(http.StatusOK, record)
+	} else {
+		c.String(http.StatusOK, "full")
+	}
+}
+
+func CreateReceipts(c *gin.Context) {
+	var receipt models.Receipt
+	c.BindJSON(&receipt)
+
+	configs.DB.Create(&receipt)
+	c.JSON(http.StatusOK, receipt)
+}

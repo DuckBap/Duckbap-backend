@@ -14,38 +14,49 @@ type ErrorStruct struct {
 	Message	string
 }
 
-func	changeString(str string) string {
+func	changeString(str string, forQuery bool) string {
 	var index	int
 	var checker bool
 	var newStr	string
 
-	for idx,rune := range str {
-		if idx != 0 && (rune >= 'A' && rune <= 'Z') {
-			index = idx
-			checker = true
-			break
+	if forQuery {
+		for idx,rune := range str {
+			if idx != 0 && (rune >= 'A' && rune <= 'Z') {
+				index = idx
+				checker = true
+				break
+			}
+		}
+		if checker {
+			newStr = str[:index] + "_" + str[index:]
+		} else {
+			newStr = str
+		}
+		newStr = strings.ToLower(newStr)
+	} else {
+		rune := str[0]
+		if rune >= 'A' && rune <= 'Z' {
+			newStr = str[:1]
+			newStr = strings.ToLower(newStr)
+			newStr = newStr + str[1:]
 		}
 	}
-	if checker {
-		newStr = str[:index] + "_" + str[index:]
-	} else {
-		newStr = str
-	}
-	newStr = strings.ToLower(newStr)
 	return newStr
 }
-
+//--------------------------------------------------------------------------------
 func	AnalyzeErrorMessage(message string) string {
 	var	errorPoint	string
 
 	if strings.Contains(message, "users.user_name") {
-		errorPoint = "user_name"
+		errorPoint = "userName"
 	} else if strings.Contains(message, "users.email") {
 		errorPoint = "email"
 	} else if strings.Contains(message, "users.nick_name") {
-		errorPoint = "nick_name"
+		errorPoint = "nickName"
 	} else if strings.Contains(message, "favorite_artist") {
-		errorPoint = "favorite_artist"
+		errorPoint = "favoriteArtist"
+	} else if strings.Contains(message, "favoriteArtist") {
+		errorPoint = "favoriteArtist"
 	}
 	return errorPoint
 }
@@ -64,24 +75,28 @@ func	makeErrorStruct(err error) (ErrorStruct, error) {
 	return errorStruct, marshalingError
 }
 
-func	FindErrorPoint(err error) (string, int){
-	var errorPoint 	string
+func	FindErrorPoint(err error) (map[string]string, int){
+	var errorPoint	string
 	var httpCode	int
 
 	errorStruct, marshalingError := makeErrorStruct(err)
+	errorMap := make(map[string]string)
 	if marshalingError != nil {
-		errorPoint = "json marshaling error"
+		errorPoint = "json marshaling"
 	} else {
 		errorPoint = AnalyzeErrorMessage(errorStruct.Message)
 	}
 	if errorStruct.Number == 1062 {
 		httpCode = http.StatusAlreadyReported
+		errorMap[errorPoint] = "이미 존재한 값 입니다."
 	} else if errorStruct.Number == 1452 {
 		httpCode = http.StatusFailedDependency
+		errorMap[errorPoint] = "참조할 수 없는 값 입니다."
 	} else {
 		httpCode = http.StatusNotFound
+		errorMap[errorPoint] = "해당 값을 찾을 수 없습니다."
 	}
-	return errorPoint, httpCode
+	return errorMap, httpCode
 }
 
 /*
@@ -92,7 +107,7 @@ func	IsAlreadyValuePresent(model interface{}, query string, value interface{}) b
 	var	changeChecker	bool
 	var queryString		string
 
-	queryString = changeString(query)
+	queryString = changeString(query, true)
 	if queryString == "favorite_artist" {
 		queryString = "id = ?"
 		changeChecker = true
@@ -108,10 +123,11 @@ func	IsAlreadyValuePresent(model interface{}, query string, value interface{}) b
 	return false
 }
 
-func	isEmptyValue (elements reflect.Value, index int) (string, bool) {
+func	isEmptyValue (elements reflect.Value, index int) (map[string]string, bool) {
 	var	emptyPoint		string
 	var isEmpty			bool
 
+	errorMap := make(map[string]string)
 	elementField := elements.Field(index).Interface()
 	elementType := elements.Field(index).Type().String()
 	elementString := fmt.Sprintf("%v", elementField)
@@ -124,15 +140,17 @@ func	isEmptyValue (elements reflect.Value, index int) (string, bool) {
 		}
 	}
 	if isEmpty {
-		emptyPoint = changeString(emptyPoint)
+		emptyPoint = changeString(emptyPoint, false)
+		errorMap[emptyPoint] = "비어 있는 값 입니다."
 	}
-	return emptyPoint, isEmpty
+	return errorMap, isEmpty
 }
 
-func	isAlreadyPresent(dataStruct interface{}, elements reflect.Value, index int) (string, bool){
+func	isAlreadyPresent(dataStruct interface{}, elements reflect.Value, index int) (map[string]string, bool){
 	var isExist			bool
 	var	model			interface{}
 
+	errorMap := make(map[string]string)
 	elementField := elements.Field(index).Interface()
 	elementTag := elements.Type().Field(index).Tag.Get("gorm")
 	presentPoint := elements.Type().Field(index).Name
@@ -147,26 +165,30 @@ func	isAlreadyPresent(dataStruct interface{}, elements reflect.Value, index int)
 			isExist = true
 		}
 	}
-	presentPoint = changeString(presentPoint)
-	return presentPoint, isExist
+	presentPoint = changeString(presentPoint, false)
+	if isExist {
+		errorMap[presentPoint] = "이미 존재한 값 입니다."
+	}
+	return errorMap, isExist
 }
 
-func	isImpossibleValue(elements reflect.Value, index *int) (string, bool) {
+func	isImpossibleValue(elements reflect.Value, index int) (map[string]string, bool) {
 	var	value			string
 	var	nextValue		string
 	var impossiblePoint string
 	var	isImpossible	bool
 	var idx				int
 
-	idx = *index
+	idx = index
 	elementName := elements.Type().Field(idx).Name
+	errorMap := make(map[string]string)
 	if elementName == "Password2" {
 		if elements.Type().Field(idx - 1).Name == "Password1" {
 			value = fmt.Sprintf("%v",elements.Field(idx).Interface())
 			nextValue = fmt.Sprintf("%v",elements.Field(idx - 1).Interface())
 			if value != nextValue {
-				impossiblePoint = "different password "
-				*index++
+				impossiblePoint = elementName
+				errorMap[impossiblePoint] = "비밀번호가 일치하지 않습니다."
 				isImpossible = true
 			}
 		}
@@ -188,27 +210,28 @@ func	isImpossibleValue(elements reflect.Value, index *int) (string, bool) {
 		}
 		if isImpossible {
 			impossiblePoint = elementName
+			errorMap[impossiblePoint] = "잘못된 형식 입니다."
 		}
 	}
-	return impossiblePoint, isImpossible
+	return errorMap, isImpossible
 }
 
-func	IsEmpty (dataStruct interface{}) (string, int, bool) {
-	var	errorPoint		string
+func	IsEmpty (dataStruct interface{}) (map[string]string, int, bool) {
 	var isPossible		bool
 	var	httpCode		int
 	var	errorChecker	bool
 
+	errorMap := make(map[string]string)
 	target := reflect.ValueOf(dataStruct)
 	elements := target.Elem()
 	for idx := 0; idx < elements.NumField(); idx++ {
 		 if emptyValue,isExist := isEmptyValue(elements, idx); isExist {
-			errorPoint = emptyValue
+			errorMap = emptyValue
 			isPossible = isExist
 			errorChecker = true
 			break
-		} else if impossibleValue, isUnable := isImpossibleValue(elements, &idx); isUnable {
-			errorPoint = impossibleValue
+		} else if impossibleValue, isUnable := isImpossibleValue(elements, idx); isUnable {
+			errorMap = impossibleValue
 			isPossible = isUnable
 			errorChecker = true
 			break
@@ -219,25 +242,25 @@ func	IsEmpty (dataStruct interface{}) (string, int, bool) {
 	} else {
 		httpCode = http.StatusOK
 	}
-	return errorPoint, httpCode, isPossible
+	return errorMap, httpCode, isPossible
 }
 
-func	IsExist(dataStruct interface{}) (string, int, bool){
-	var	errorPoint		string
+func	IsExist(dataStruct interface{}) (map[string]string, int, bool){
 	var isPossible		bool
 	var	httpCode		int
 
+	errorMap := make(map[string]string)
 	target := reflect.ValueOf(dataStruct)
 	elements := target.Elem()
 	httpCode = http.StatusOK
 	for idx := 0; idx < elements.NumField(); idx++ {
 		presentPoint, isExist := isAlreadyPresent(dataStruct, elements, idx)
 		if isExist {
-			errorPoint = presentPoint
+			errorMap = presentPoint
 			isPossible = isExist
 			httpCode = http.StatusAlreadyReported
 			break
 		}
 	}
-	return errorPoint, httpCode, isPossible
+	return errorMap, httpCode, isPossible
 }

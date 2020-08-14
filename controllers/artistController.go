@@ -54,7 +54,7 @@ func ArtistList(c *gin.Context) {
 	})
 }
 
-func	CreateArtist(c *gin.Context) {
+func CreateArtist(c *gin.Context) {
 	var artist models.Artist
 	c.BindJSON(&artist)
 
