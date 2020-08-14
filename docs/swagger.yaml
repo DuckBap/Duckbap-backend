@@ -8,6 +8,21 @@ definitions:
       name:
         type: string
     type: object
+  controllers.InputUserData:
+    properties:
+      email:
+        type: string
+      favoriteArtist:
+        type: integer
+      nickName:
+        type: string
+      password1:
+        type: string
+      password2:
+        type: string
+      userName:
+        type: string
+    type: object
   controllers.OutputArtistList:
     properties:
       artistId:
@@ -19,19 +34,211 @@ definitions:
       entId:
         type: integer
     type: object
+  controllers.artist:
+    properties:
+      id:
+        type: integer
+      imgUrl:
+        type: string
+      level:
+        type: integer
+      name:
+        type: string
+    type: object
+  controllers.bannerFunding:
+    properties:
+      artistID:
+        type: integer
+      id:
+        type: integer
+      mainImgUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  controllers.data:
+    properties:
+      bookmark:
+        items:
+          $ref: '#/definitions/controllers.artist'
+        type: array
+      buy:
+        items:
+          $ref: '#/definitions/controllers.receipt'
+        type: array
+      favoriteArtist:
+        $ref: '#/definitions/controllers.artist'
+      id:
+        type: integer
+      nickName:
+        type: string
+      sell:
+        items:
+          $ref: '#/definitions/controllers.receipt'
+        type: array
+    type: object
+  controllers.funding:
+    properties:
+      id:
+        type: integer
+      mainImgUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  controllers.fundingListResBody:
+    properties:
+      achievementRate:
+        type: number
+      dDay:
+        type: integer
+      fundingName:
+        type: string
+      id:
+        type: integer
+      mainImgUrl:
+        type: string
+      sellerName:
+        type: string
+    type: object
+  controllers.fundingResBody:
+    properties:
+      achievementRate:
+        description: salesAmount / Price
+        type: number
+      artistName:
+        type: string
+      dDay:
+        type: integer
+      detailedImgUrl:
+        type: string
+      endDate:
+        type: string
+      fundName:
+        type: string
+      fundingImgUrls:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      price:
+        type: integer
+      salesAmount:
+        type: integer
+      sellerName:
+        type: string
+      startDate:
+        type: string
+      targetAmount:
+        type: integer
+    type: object
+  controllers.listFunding:
+    properties:
+      achievementRate:
+        type: number
+      id:
+        type: integer
+      mainImgUrl:
+        type: string
+      name:
+        type: string
+    type: object
+  controllers.receipt:
+    properties:
+      createdAt:
+        type: string
+      funding:
+        $ref: '#/definitions/controllers.funding'
+      fundingId:
+        type: integer
+      id:
+        type: integer
+    type: object
+  middlewares.Login:
+    properties:
+      password:
+        type: string
+      userName:
+        type: string
+    required:
+    - password
+    - userName
+    type: object
 info:
   contact: {}
 paths:
-  /artists/:
+  /accounts/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: loginInfo
+        in: body
+        name: loginInfo
+        required: true
+        schema:
+          $ref: '#/definitions/middlewares.Login'
+      produces:
+      - application/json
+      responses:
+        "200": {}
+  /accounts/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        <br>유저의 정보를 context에 저장하여 미들웨어에게 전달합니다.<br>
+        빈 값이 요청되었을 경우 오류 발생위치와 오류 메시지를 반환합니다.<br>
+        잘못된 값이 들어왔을 경우 오류 발생위치와 오류 메시지를 반환합니다.<br>
+        이미 회원인 경우 오류를 발생시켜 오류 발생위치와 오류 메시지를 반환합니다.<br>
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.InputUserData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          headers:
+            user:
+              description: token
+              type: object
+          schema:
+            type: ""
+        "208":
+          description: '이미 존재한 값이 들어올 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+        "400":
+          description: '잘못된 값이 들어올 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+        "404":
+          description: '해당 값을 통해서 회원 가입을 못할 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+        "424":
+          description: '참조할 수 없는 값이 들어올 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+      summary: 회원가입 요청이 들어왔을 때 동작하는 곳
+  /artists:
     get:
       consumes:
       - application/json
       description: |-
-        <br>아티스트 리스트를 반환합니다.<br>
-        쿼리스트링이 존재하지 않을 경우 모든 아티스트를 반환합니다.<br>
-        쿼리스트링이 존재하는 경우 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.<br>
-        쿼리스트링 종류
-        1. /v1/artists?ent-id=()
+        ## <br>아티스트 리스트를 반환합니다.
+        <br>
+        # 쿼리스트링이 존재하지 않는 경우
+        1. 모든 아티스트를 반환합니다.<br>
+        # <br>쿼리스트링이 존재하는 경우
+        1. 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.<br>
+        1. 회사에 속한 아티스트들 /v1/artists?ent-id=()
       produces:
       - application/json
       responses:
@@ -42,7 +249,7 @@ paths:
               $ref: '#/definitions/controllers.OutputArtistList'
             type: array
       summary: 아티스트 리스트
-  /ents/:
+  /ents:
     get:
       consumes:
       - application/json
@@ -57,4 +264,118 @@ paths:
               $ref: '#/definitions/controllers.Entertainment'
             type: array
       summary: 엔터테인먼트 리스트
+  /fundings:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        <br>아티스트와 관련된 펀딩 리스트를 반환합니다.
+        <br>
+      parameters:
+      - description: .
+        in: query
+        name: artist-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.fundingListResBody'
+            type: array
+      summary: 아티스트와 관련 펀딩 리스트
+  /fundings/{fund_id}:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        <br>펀딩 상세정보를 반환합니다.
+        <br>
+        sellerName : 판매자의 닉네임<br>
+        fundName : 펀드 이름<br>
+        price : 하나를 구매할 때의 가격<br>
+        targetAmount : 판매 목표량<br>
+        salesAmount : 현재까지의 판매량<br>
+        startDate : 펀딩 시작 일<br>
+        endDate: 펀딩 마감 일<br>
+        artistName : 펀딩과 관련된 연예인 이름<br>
+        achievementRate : 펀딩 달성률 (판매량 / 목표량)<br>
+        dDay : 펀딩 마감일까지 남은 날짜<br>
+        fundingImgUrls : 펀딩 상품의 이미지 주소들<br>
+        detailedImgUrl : 펀딩 상세정보 이미지<br>
+      parameters:
+      - description: fund_id
+        in: path
+        name: fund_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.fundingResBody'
+      summary: 펀딩 상세정보
+  /fundings/banner:
+    get:
+      consumes:
+      - application/json
+      description: <br>펀딩 리스트를 반환합니다.<br>
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.bannerFunding'
+            type: array
+      summary: 메인 배너에서 보여줄 펀딩 리스트
+  /fundings/main:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        ## 메인 페이지에서 보여줄 펀딩 리스트를 반환합니다.
+        <br>
+        ## 로그인이 되어있을 경우
+        1. 즐겨찾기에 저장되어있는 아이돌, 최애 아이돌과 관련된 펀딩들, 판매량이 가장 높은 펀딩들이 포함됩니다.
+        <br>
+        2. 펀딩 8개가 들어있는 리스트가 반환됩니다.<br>
+        <br>
+        ## 로그인이 되어있지 않을 경우
+        1. 판매량이 높은 펀딩 8개가 포함된 리스트가 반환됩니다.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controllers.listFunding'
+            type: array
+      summary: 메인에서 보여줄 펀딩 리스트
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        로그인이 되어있어야 접근 가능합니다.<br>
+        nickName : <br>
+        favoriteArtist : <br>
+        buy : <br>
+        sell : <br>
+        bookmark : <br>
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.data'
+      summary: 마이 페이지에서 보여줄 정보
 swagger: "2.0"

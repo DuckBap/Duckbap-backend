@@ -37,15 +37,11 @@ type itemList struct {
 }
 
 // @Summary 메인 배너에서 보여줄 펀딩 리스트
-// @Description <br>아티스트 리스트를 반환합니다.<br>
-// @Description 쿼리스트링이 존재하지 않을 경우 모든 아티스트를 반환합니다.<br>
-// @Description 쿼리스트링이 존재하는 경우 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.<br>
-// @Description 쿼리스트링 종류
-// @Description 1. /v1/artists?ent-id=()
+// @Description <br>펀딩 리스트를 반환합니다.<br>
 // @Accept  json
 // @Produce  json
-// @Router /artists/ [get]
-// @Success 200 {array} OutputArtistList
+// @Router /fundings/banner [get]
+// @Success 200 {array} bannerFunding
 func BannerSelect(c *gin.Context) {
 	var fundings []bannerFunding
 
@@ -55,6 +51,20 @@ func BannerSelect(c *gin.Context) {
 	})
 }
 
+// @Summary 메인에서 보여줄 펀딩 리스트
+// @Description ## 메인 페이지에서 보여줄 펀딩 리스트를 반환합니다.
+// @Description <br>
+// @Description ## 로그인이 되어있을 경우
+// @Description 1. 즐겨찾기에 저장되어있는 아이돌, 최애 아이돌과 관련된 펀딩들, 판매량이 가장 높은 펀딩들이 포함됩니다.
+// @Description <br>
+// @Description 2. 펀딩 8개가 들어있는 리스트가 반환됩니다.<br>
+// @Description <br>
+// @Description ## 로그인이 되어있지 않을 경우
+// @Description 1. 판매량이 높은 펀딩 8개가 포함된 리스트가 반환됩니다.
+// @Accept  json
+// @Produce  json
+// @Router /fundings/main [get]
+// @Success 200 {array} listFunding
 func ListSelect(c *gin.Context, id uint) {
 	var bookmark []bookmarks
 	type Test struct {

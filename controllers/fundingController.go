@@ -51,25 +51,26 @@ type fundingResBody struct {
 	DetailedImgUrl  string    `json:"detailedImgUrl"`
 }
 
-//test
-//func CreateFunding(c *gin.Context) {
-//	fund := models.Funding{
-//		SellerID: 1,
-//		Name: "아이 굿즈3",
-//		Price: 4000,
-//		TargetAmount: 50000,
-//		MainImgUrl: "이미지4",
-//		ArtistID: 2,
-//		StartDate: time.Now(),
-//		EndDate: time.Now().Add(24 * time.Hour),
-//	}
-//	configs.DB.Create(&fund)
-//	c.JSON(http.StatusOK, gin.H{
-//		"msg": "create funding",
-//		"funding": fund,
-//	})
-//}
-
+// @Summary 펀딩 상세정보
+// @Description <br>펀딩 상세정보를 반환합니다.
+// @Description <br>
+// @Description sellerName : 판매자의 닉네임<br>
+// @Description fundName : 펀드 이름<br>
+// @Description price : 하나를 구매할 때의 가격<br>
+// @Description targetAmount : 판매 목표량<br>
+// @Description salesAmount : 현재까지의 판매량<br>
+// @Description startDate : 펀딩 시작 일<br>
+// @Description endDate: 펀딩 마감 일<br>
+// @Description artistName : 펀딩과 관련된 연예인 이름<br>
+// @Description achievementRate : 펀딩 달성률 (판매량 / 목표량)<br>
+// @Description dDay : 펀딩 마감일까지 남은 날짜<br>
+// @Description fundingImgUrls : 펀딩 상품의 이미지 주소들<br>
+// @Description detailedImgUrl : 펀딩 상세정보 이미지<br>
+// @Param fund_id path integer true "fund_id"
+// @Accept  json
+// @Produce  json
+// @Router /fundings/{fund_id} [get]
+// @Success 200 {object} fundingResBody
 func GetFunding(c *gin.Context) {
 	fundID := c.Param("fund-id")
 
@@ -126,6 +127,7 @@ type queryString struct {
 	ArtistID uint `form:"artist-id" binding:"required"`
 }
 
+
 type fundingListResBody struct {
 	ID              uint    `json:"id"`
 	NickName        string  `json:"sellerName"`
@@ -135,6 +137,14 @@ type fundingListResBody struct {
 	AchievementRate float64 `json:"achievementRate"`
 }
 
+// @Summary 아티스트와 관련 펀딩 리스트
+// @Description <br>아티스트와 관련된 펀딩 리스트를 반환합니다.
+// @Description <br>
+// @Param artist-id query integer true "."
+// @Accept  json
+// @Produce  json
+// @Router /fundings [get]
+// @Success 200 {array} fundingListResBody
 func GetFundingList(c *gin.Context) {
 	queryString := queryString{}
 
@@ -149,7 +159,6 @@ func GetFundingList(c *gin.Context) {
 			"data": body,
 		})
 	}
-
 }
 
 func setFundingListBody(artistID uint) []fundingListResBody {
@@ -175,6 +184,34 @@ func isArtistExist(artistID uint) bool {
 
 }
 
-func BuyFunding(c *gin.Context) {
+type fundingstringBody struct {
+	ID              uint     `json:"id"`
+	NickName        string   `json:"sellerName"`
+	Name            string   `json:"fundName"`
+	Price           uint     `json:"price"`
+	TargetAmount    uint     `json:"targetAmount"`
+	SalesAmount     uint     `json:"salesAmount"`
+	StartDate       string   `json:"startDate"`
+	EndDate         string   `json:"endDate"`
+	ArtistName      string   `json:"artistName"`
+	AchievementRate float64  `json:"achievementRate"` //salesAmount / Price
+	Dday            uint     `json:"dDay"`
+	FundingImgUrls  []string `json:"fundingImgUrls"`
+	DetailedImgUrl  string   `json:"detailedImgUrl"`
+}
 
+func CreateFund(c *gin.Context) {
+	var funding models.Funding
+	c.BindJSON(&funding)
+
+	configs.DB.Create(&funding)
+	c.JSON(http.StatusOK, funding)
+}
+
+func CreateFundingImg(c *gin.Context) {
+	var img models.FundingImg
+	c.BindJSON(&img)
+
+	configs.DB.Create(&img)
+	c.JSON(http.StatusOK, img)
 }

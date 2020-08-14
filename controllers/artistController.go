@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
+	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -16,14 +17,16 @@ type OutputArtistList struct {
 }
 
 // @Summary 아티스트 리스트
-// @Description <br>아티스트 리스트를 반환합니다.<br>
-// @Description 쿼리스트링이 존재하지 않을 경우 모든 아티스트를 반환합니다.<br>
-// @Description 쿼리스트링이 존재하는 경우 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.<br>
-// @Description 쿼리스트링 종류
-// @Description 1. /v1/artists?ent-id=()
+// @Description ## <br>아티스트 리스트를 반환합니다.
+// @Description <br>
+// @Description # 쿼리스트링이 존재하지 않는 경우
+// @Description 1. 모든 아티스트를 반환합니다.<br>
+// @Description # <br>쿼리스트링이 존재하는 경우
+// @Description 1. 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.<br>
+// @Description 1. 회사에 속한 아티스트들 /v1/artists?ent-id=()
 // @Accept  json
 // @Produce  json
-// @Router /artists/ [get]
+// @Router /artists [get]
 // @Success 200 {array} OutputArtistList
 func ShowArtists(c *gin.Context) {
 	id, _ := c.GetQuery("ent-id")
@@ -51,4 +54,12 @@ func ArtistList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": list,
 	})
+}
+
+func CreateArtist(c *gin.Context) {
+	var artist models.Artist
+	c.BindJSON(&artist)
+
+	configs.DB.Create(&artist)
+	c.JSON(http.StatusOK, artist)
 }

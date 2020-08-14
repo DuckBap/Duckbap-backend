@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
@@ -12,40 +11,40 @@ import (
 )
 
 type data struct {
-	ID uint					`json:"id"`
-	Nickname string			`json:"nickName"`
-	FavoriteArtist artist	`json:"favoriteArtist"`
-	Buy []receipt			`json:"buy"`
-	Sell []receipt			`json:"sell"`
-	Bookmark []artist		`json:"bookmark"`
+	ID             uint      `json:"id"`
+	Nickname       string    `json:"nickName"`
+	FavoriteArtist artist    `json:"favoriteArtist"`
+	Buy            []receipt `json:"buy"`
+	Sell           []receipt `json:"sell"`
+	Bookmark       []artist  `json:"bookmark"`
 }
 
 type artist struct {
-	ID uint				`json:"id"`
-	Name string			`json:"name"`
-	ImgUrl string		`json:"imgUrl"`
-	Level int			`json:"level"`
+	ID     uint   `json:"id"`
+	Name   string `json:"name"`
+	ImgUrl string `json:"imgUrl"`
+	Level  int    `json:"level"`
 }
 
 type ranking struct {
-	UserID uint
-	ArtistID uint
+	UserID    uint
+	ArtistID  uint
 	SellTotal uint
-	BuyTotal uint
-	Total uint
+	BuyTotal  uint
+	Total     uint
 }
 
 type funding struct {
-	ID uint				`json:"id"`
-	Name string			`json:"name"`
-	MainImgUrl string	`json:"mainImgUrl"`
+	ID         uint   `json:"id"`
+	Name       string `json:"name"`
+	MainImgUrl string `json:"mainImgUrl"`
 }
 
 type receipt struct {
-	ID uint				`json:"id"`
-	CreatedAt time.Time	`json:"createdAt"`
-	FundingID uint		`json:"fundingId"`
-	Funding funding		`json:"funding"`
+	ID        uint      `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	FundingID uint      `json:"fundingId"`
+	Funding   funding   `json:"funding"`
 }
 
 func getArtist(user models.User, rankingList []ranking) artist {
@@ -58,66 +57,91 @@ func getArtist(user models.User, rankingList []ranking) artist {
 	return artist
 }
 
-func getSell(user models.User) []receipt {
+func getSell(user models.User) ([]receipt, error) {
 	var sell []receipt
 
-	configs.DB.Table("receipts").
+	err := configs.DB.Table("receipts").
 		Select("receipts.id, fundings.id as funding_id").
 		Joins("join fundings on fundings.id = receipts.funding_id").
 		Where("receipts.seller_id = ?", user.ID).
 		Order("receipts.created_at desc").
 		Limit(2).
-		Preload(clause.Associations).Find(&sell)
-	return sell
+		Preload(clause.Associations).
+		Find(&sell).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return sell, nil
 }
 
-func getBuy(user models.User) []receipt {
+func getBuy(user models.User) ([]receipt, error) {
 	var buy []receipt
 
-	configs.DB.Table("receipts").
+	err := configs.DB.Table("receipts").
 		Select("receipts.id, fundings.id as funding_id").
 		Joins("join fundings on fundings.id = receipts.funding_id").
 		Where("receipts.buyer_id = ?", user.ID).
 		Order("receipts.created_at desc").
 		Limit(2).
-		Preload(clause.Associations).Find(&buy)
-	return buy
+		Preload(clause.Associations).
+		Find(&buy).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	return buy, nil
 }
 
-func getRankingList(user models.User) []ranking {
+func getRankingList(user models.User) ([]ranking, error) {
 	var rankingList []ranking
 	var temp []ranking
-	configs.DB.Table("Users").
+	err := configs.DB.Table("Users").
 		Select("favorite_artist as artist_id, id as user_id").
 		Where("favorite_artist = ?", user.Artist.ID).
-		Find(&rankingList)
-
-	configs.DB.Table("Bookmarks").
+		Find(&rankingList).
+		Error
+	if err != nil {
+		return nil, err
+	}
+	err = configs.DB.Table("Bookmarks").
 		Select("artist_id, user_id").
 		Where("artist_id = ?", user.Artist.ID).
-		Find(&temp)
+		Find(&temp).
+		Error
+	if err != nil {
+		return nil, err
+	}
 
 	for i := range temp {
 		rankingList = append(rankingList, temp[i])
 	}
 
 	for i := range rankingList {
-		configs.DB.Model(&models.Funding{}).
+		err := configs.DB.Model(&models.Funding{}).
 			Select("IFNULL(sum(sales_amount * price), 0)").
 			Where("artist_id = ? AND seller_id = ?", user.Artist.ID, rankingList[i].UserID).
-			Scan(&rankingList[i].SellTotal)
+			Scan(&rankingList[i].SellTotal).
+			Error
+		if err != nil {
+			return nil, err
+		}
 
-		configs.DB.Model(&models.Receipt{}).
+		err = configs.DB.Model(&models.Receipt{}).
 			Select("IFNULL(sum(receipts.amount * fundings.price), 0)").
 			Joins("join fundings on fundings.id = receipts.funding_id").
 			Where("artist_id = ? AND receipts.buyer_id = ?", user.Artist.ID, rankingList[i].UserID).
-			Scan(&rankingList[i].BuyTotal)
+			Scan(&rankingList[i].BuyTotal).
+			Error
+		if err != nil {
+			return nil, err
+		}
 		rankingList[i].Total = rankingList[i].SellTotal + rankingList[i].BuyTotal
 	}
 	sort.Slice(rankingList, func(i, j int) bool {
 		return rankingList[i].Total > rankingList[j].Total
 	})
-	return rankingList
+	return rankingList, nil
 }
 
 func associate(user *models.User) error {
@@ -137,7 +161,7 @@ func getLevel(rankingList []ranking, user models.User) int {
 			break
 		}
 	}
-	if myrank := float32(rank) / float32(len(rankingList)) * 100 ; myrank <= 3 {
+	if myrank := float32(rank) / float32(len(rankingList)) * 100; myrank <= 3 {
 		level = 1
 	} else if myrank <= 10 {
 		level = 2
@@ -151,41 +175,63 @@ func getLevel(rankingList []ranking, user models.User) int {
 	return level
 }
 
-func getBookmark(user models.User) []artist {
+func getBookmark(user models.User) ([]artist, error) {
 	var bookmark []artist
 
-	configs.DB.Table("bookmarks").
+	err := configs.DB.Table("bookmarks").
 		Select("bookmarks.artist_id as id, artists.name, artists.img_url").
 		Joins("join artists on bookmarks.artist_id = artists.id").
 		Where("user_id", user.ID).
-		Find(&bookmark)
+		Find(&bookmark).
+		Error
+	if err != nil {
+		return nil, err
+	}
 
 	for idx, _ := range bookmark {
 		var bookmarkRanking []ranking
 		var temp []ranking
 
-		configs.DB.Table("Users").
+		err := configs.DB.Table("Users").
 			Select("favorite_artist as artist_id, id as user_id").
 			Where("favorite_artist = ?", bookmark[idx].ID).
-			Find(&bookmarkRanking)
-		configs.DB.Table("Bookmarks").
+			Find(&bookmarkRanking).
+			Error
+		if err != nil {
+			return nil, err
+		}
+
+		err = configs.DB.Table("Bookmarks").
 			Select("artist_id, user_id").
 			Where("artist_id = ?", bookmark[idx].ID).
-			Find(&temp)
+			Find(&temp).
+			Error
+		if err != nil {
+			return nil, err
+		}
+
 		for i := range temp {
 			bookmarkRanking = append(bookmarkRanking, temp[i])
 		}
 		for i := range bookmarkRanking {
-			configs.DB.Model(&models.Funding{}).
+			err := configs.DB.Model(&models.Funding{}).
 				Select("IFNULL(sum(sales_amount * price), 0)").
 				Where("artist_id = ? AND seller_id = ?", bookmark[idx].ID, bookmarkRanking[i].UserID).
-				Scan(&bookmarkRanking[i].SellTotal)
+				Scan(&bookmarkRanking[i].SellTotal).
+				Error
+			if err != nil {
+				return nil, err
+			}
 
-			configs.DB.Model(&models.Receipt{}).
+			err = configs.DB.Model(&models.Receipt{}).
 				Select("IFNULL(sum(receipts.amount * fundings.price), 0)").
 				Joins("join fundings on fundings.id = receipts.funding_id").
 				Where("artist_id = ? AND receipts.buyer_id = ?", bookmark[idx].ID, bookmarkRanking[i].UserID).
-				Scan(&bookmarkRanking[i].BuyTotal)
+				Scan(&bookmarkRanking[i].BuyTotal).
+				Error
+			if err != nil {
+				return nil, err
+			}
 			bookmarkRanking[i].Total = bookmarkRanking[i].SellTotal + bookmarkRanking[i].BuyTotal
 		}
 		sort.Slice(bookmarkRanking, func(i, j int) bool {
@@ -193,37 +239,110 @@ func getBookmark(user models.User) []artist {
 		})
 		bookmark[idx].Level = getLevel(bookmarkRanking, user)
 
-
 	}
 	sort.Slice(bookmark, func(i, j int) bool {
 		return bookmark[i].Level < bookmark[j].Level
 	})
-	return bookmark
+	return bookmark, nil
 }
 
+// @Summary 마이 페이지에서 보여줄 정보
+// @Description 로그인이 되어있어야 접근 가능합니다.<br>
+// @Description nickName : <br>
+// @Description favoriteArtist : <br>
+// @Description buy : <br>
+// @Description sell : <br>
+// @Description bookmark : <br>
+// @Accept  json
+// @Produce  json
+// @Router /users/me [get]
+// @Success 200 {object} data
 func GetMe(c *gin.Context) {
 	var user models.User
 	var data data
 
 	loginUser, _ := c.Get("user") //로그인한 유저 인터페이스 가져오기
 	if err := configs.DB.First(&user, loginUser.(*models.User).ID).Error; err != nil {
-		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
 		return
 	}
-	if err := associate(&user) ; err != nil {
-		fmt.Println(err.Error())
+	if err := associate(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
 		return
 	}
 
 	data.ID = user.ID
 	data.Nickname = user.NickName
-	data.Buy = getBuy(user)
-	data.Sell = getSell(user)
-	rankingList := getRankingList(user)
+
+	if sell, err := getSell(user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	} else {
+		data.Sell = sell
+	}
+
+	if buy, err := getBuy(user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	} else {
+		data.Buy = buy
+	}
+
+	rankingList, err := getRankingList(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	}
+
 	data.FavoriteArtist = getArtist(user, rankingList)
-	data.Bookmark = getBookmark(user)
+	if bookmark, err := getBookmark(user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": err.Error(),
+		})
+		return
+	} else {
+		data.Bookmark = bookmark
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": data,
 	})
+}
+
+type bookmark struct {
+	UserID   uint `json:"userId"`
+	ArtistID uint `json:"artistId"`
+}
+
+func CreateBookmark(c *gin.Context) {
+	var record bookmark
+	c.BindJSON(&record)
+
+	var cnt uint
+	configs.DB.Table("bookmarks").Select("count(*)").Where("user_id = ?", record.UserID).Find(&cnt)
+
+	if cnt < 3 {
+		configs.DB.Create(&record)
+		c.JSON(http.StatusOK, record)
+	} else {
+		c.String(http.StatusOK, "full")
+	}
+}
+
+func CreateReceipts(c *gin.Context) {
+	var receipt models.Receipt
+	c.BindJSON(&receipt)
+
+	configs.DB.Create(&receipt)
+	c.JSON(http.StatusOK, receipt)
 }
