@@ -246,6 +246,17 @@ func getBookmark(user models.User) ([]artist, error) {
 	return bookmark, nil
 }
 
+// @Summary 마이 페이지에서 보여줄 정보
+// @Description 로그인이 되어있어야 접근 가능합니다.<br>
+// @Description nickName : <br>
+// @Description favoriteArtist : <br>
+// @Description buy : <br>
+// @Description sell : <br>
+// @Description bookmark : <br>
+// @Accept  json
+// @Produce  json
+// @Router /users/me [get]
+// @Success 200 {object} data
 func GetMe(c *gin.Context) {
 	var user models.User
 	var data data

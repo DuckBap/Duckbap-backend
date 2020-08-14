@@ -11,6 +11,20 @@ import (
 
 var Auth *jwt.GinJWTMiddleware
 
+type Login struct {
+	UserName string `form:"userName" json:"userName" binding:"required"`
+	Password string `form:"password" json:"password" binding:"required"`
+}
+
+// @Summary 로그인.
+// @Description <br>로그인 성공 시 jwt 토큰을 반환합니다.
+// @Description <br>
+
+// @Param loginInfo body Login true "loginInfo"
+// @Accept  json
+// @Produce  json
+// @Router /accounts/login [post]
+// @Success 200
 func init() {
 	Auth, _ = jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "Duckbap",
@@ -33,10 +47,6 @@ func init() {
 			}
 		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
-			type Login struct {
-				UserName string `form:"userName" json:"userName" binding:"required"`
-				Password string `form:"password" json:"password" binding:"required"`
-			}
 			var login Login
 			var user models.User
 			if err := c.ShouldBind(&login); err != nil {
