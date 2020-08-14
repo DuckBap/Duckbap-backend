@@ -22,6 +22,39 @@ definitions:
 info:
   contact: {}
 paths:
+  /accounts/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        <br>유저의 정보를 context에 저장하여 미들웨어에게 전달합니다.<br>
+        빈 값이 요청되었을 경우 오류 발생위치와 오류 메시지를 반환합니다.<br>
+        잘못된 값이 들어왔을 경우 오류 발생위치와 오류 메시지를 반환합니다.<br>
+        이미 회원인 경우 오류를 발생시켜 오류 발생위치와 오류 메시지를 반환합니다.<br>
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            type: ""
+        "208":
+          description: '이미 존재한 값이 들어올 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+        "400":
+          description: '잘못된 값이 들어올 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+        "404":
+          description: '해당 값을 통해서 회원 가입을 못할 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+        "424":
+          description: '참조할 수 없는 값이 들어올 때", "{"err": {"errorPoint": "message"}}'
+          schema:
+            type: ""
+      summary: 회원가입 요청이 들어왔을 때 동작하는 곳
   /artists/:
     get:
       consumes:
