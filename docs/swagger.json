@@ -4,9 +4,33 @@
         "contact": {}
     },
     "paths": {
-        "/artists/": {
+        "/accounts/login": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "description": "loginInfo",
+                        "name": "loginInfo",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/middlewares.Login"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
+        "/artists": {
             "get": {
-                "description": "\u003cbr\u003e아티스트 리스트를 반환합니다.\u003cbr\u003e\n쿼리스트링이 존재하지 않을 경우 모든 아티스트를 반환합니다.\u003cbr\u003e\n쿼리스트링이 존재하는 경우 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.\u003cbr\u003e\n쿼리스트링 종류\n1. /v1/artists?ent-id=()",
+                "description": "## \u003cbr\u003e아티스트 리스트를 반환합니다.\n\u003cbr\u003e\n# 쿼리스트링이 존재하지 않는 경우\n1. 모든 아티스트를 반환합니다.\u003cbr\u003e\n# \u003cbr\u003e쿼리스트링이 존재하는 경우\n1. 쿼리스트링을 조건으로 필터링 된 아티스트를 반환합니다.\u003cbr\u003e\n1. 회사에 속한 아티스트들 /v1/artists?ent-id=()",
                 "consumes": [
                     "application/json"
                 ],
@@ -27,7 +51,7 @@
                 }
             }
         },
-        "/ents/": {
+        "/ents": {
             "get": {
                 "description": "\u003cbr\u003e엔터테인먼트 리스트를 반환합니다.\u003cbr\u003e",
                 "consumes": [
@@ -45,6 +69,133 @@
                             "items": {
                                 "$ref": "#/definitions/controllers.Entertainment"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/fundings": {
+            "get": {
+                "description": "\u003cbr\u003e아티스트와 관련된 펀딩 리스트를 반환합니다.\n\u003cbr\u003e",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "아티스트와 관련 펀딩 리스트",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": ".",
+                        "name": "artist-id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controllers.fundingListResBody"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/fundings/banner": {
+            "get": {
+                "description": "\u003cbr\u003e펀딩 리스트를 반환합니다.\u003cbr\u003e",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "메인 배너에서 보여줄 펀딩 리스트",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controllers.bannerFunding"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/fundings/main": {
+            "get": {
+                "description": "## 메인 페이지에서 보여줄 펀딩 리스트를 반환합니다.\n\u003cbr\u003e\n## 로그인이 되어있을 경우\n1. 즐겨찾기에 저장되어있는 아이돌, 최애 아이돌과 관련된 펀딩들, 판매량이 가장 높은 펀딩들이 포함됩니다.\n\u003cbr\u003e\n2. 펀딩 8개가 들어있는 리스트가 반환됩니다.\u003cbr\u003e\n\u003cbr\u003e\n## 로그인이 되어있지 않을 경우\n1. 판매량이 높은 펀딩 8개가 포함된 리스트가 반환됩니다.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "메인에서 보여줄 펀딩 리스트",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controllers.listFunding"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/fundings/{fund_id}": {
+            "get": {
+                "description": "\u003cbr\u003e펀딩 상세정보를 반환합니다.\n\u003cbr\u003e\nsellerName : 판매자의 닉네임\u003cbr\u003e\nfundName : 펀드 이름\u003cbr\u003e\nprice : 하나를 구매할 때의 가격\u003cbr\u003e\ntargetAmount : 판매 목표량\u003cbr\u003e\nsalesAmount : 현재까지의 판매량\u003cbr\u003e\nstartDate : 펀딩 시작 일\u003cbr\u003e\nendDate: 펀딩 마감 일\u003cbr\u003e\nartistName : 펀딩과 관련된 연예인 이름\u003cbr\u003e\nachievementRate : 펀딩 달성률 (판매량 / 목표량)\u003cbr\u003e\ndDay : 펀딩 마감일까지 남은 날짜\u003cbr\u003e\nfundingImgUrls : 펀딩 상품의 이미지 주소들\u003cbr\u003e\ndetailedImgUrl : 펀딩 상세정보 이미지\u003cbr\u003e",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "펀딩 상세정보",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "fund_id",
+                        "name": "fund_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.fundingResBody"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "description": "로그인이 되어있어야 접근 가능합니다.\u003cbr\u003e\nnickName : \u003cbr\u003e\nfavoriteArtist : \u003cbr\u003e\nbuy : \u003cbr\u003e\nsell : \u003cbr\u003e\nbookmark : \u003cbr\u003e",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "마이 페이지에서 보여줄 정보",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.data"
                         }
                     }
                 }
@@ -80,6 +231,206 @@
                 },
                 "entId": {
                     "type": "integer"
+                }
+            }
+        },
+        "controllers.artist": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "imgUrl": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.bannerFunding": {
+            "type": "object",
+            "properties": {
+                "artistID": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mainImgUrl": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.data": {
+            "type": "object",
+            "properties": {
+                "bookmark": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.artist"
+                    }
+                },
+                "buy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.receipt"
+                    }
+                },
+                "favoriteArtist": {
+                    "$ref": "#/definitions/controllers.artist"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nickName": {
+                    "type": "string"
+                },
+                "sell": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controllers.receipt"
+                    }
+                }
+            }
+        },
+        "controllers.funding": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "mainImgUrl": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.fundingListResBody": {
+            "type": "object",
+            "properties": {
+                "achievementRate": {
+                    "type": "number"
+                },
+                "dDay": {
+                    "type": "integer"
+                },
+                "fundingName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mainImgUrl": {
+                    "type": "string"
+                },
+                "sellerName": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.fundingResBody": {
+            "type": "object",
+            "properties": {
+                "achievementRate": {
+                    "description": "salesAmount / Price",
+                    "type": "number"
+                },
+                "artistName": {
+                    "type": "string"
+                },
+                "dDay": {
+                    "type": "integer"
+                },
+                "detailedImgUrl": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "type": "string"
+                },
+                "fundName": {
+                    "type": "string"
+                },
+                "fundingImgUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "salesAmount": {
+                    "type": "integer"
+                },
+                "sellerName": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "targetAmount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "controllers.listFunding": {
+            "type": "object",
+            "properties": {
+                "achievementRate": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "mainImgUrl": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.receipt": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "funding": {
+                    "$ref": "#/definitions/controllers.funding"
+                },
+                "fundingId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "middlewares.Login": {
+            "type": "object",
+            "required": [
+                "password",
+                "userName"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "userName": {
+                    "type": "string"
                 }
             }
         }
