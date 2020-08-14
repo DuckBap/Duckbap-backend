@@ -18,6 +18,19 @@ type InputUserData struct {
 	FavoriteArtist uint   `form:"favoriteArtist" json:"favoriteArtist"`
 }
 
+// @Summary 회원가입 요청이 들어왔을 때 동작하는 곳
+// @Description <br>유저의 정보를 context에 저장하여 미들웨어에게 전달합니다.<br>
+// @Description 빈 값이 요청되었을 경우 오류 발생위치와 오류 메시지를 반환합니다.<br>
+// @Description 잘못된 값이 들어왔을 경우 오류 발생위치와 오류 메시지를 반환합니다.<br>
+// @Description 이미 회원인 경우 오류를 발생시켜 오류 발생위치와 오류 메시지를 반환합니다.<br>
+// @Accept  json
+// @Produce  json
+// @Router /accounts/sign-up [post]
+// @Success 200 {} string "token"
+// @Failure	208 {} string ""이미 존재한 값이 들어올 때", "{"err": {"errorPoint": "message"}}"
+// @Failure	400 {} string ""잘못된 값이 들어올 때", "{"err": {"errorPoint": "message"}}"
+// @Failure	404 {} string ""해당 값을 통해서 회원 가입을 못할 때", "{"err": {"errorPoint": "message"}}"
+// @Failure	424 {} string ""참조할 수 없는 값이 들어올 때", "{"err": {"errorPoint": "message"}}"
 func inputDataToUser(user *models.User, inputData InputUserData) {
 	(*user).UserName = inputData.UserName
 	(*user).Password = inputData.Password1
