@@ -4,7 +4,6 @@ import (
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/DuckBap/Duckbap-backend/permissions"
-	//"github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
@@ -30,6 +29,13 @@ func inputDataToUser(user *models.User, inputData InputUserData) {
 func hash(pwd string) string {
 	digest, _ := bcrypt.GenerateFromPassword([]byte(pwd), 10)
 	return string(digest)
+}
+
+func filterStruct(data *models.User) {
+	(*data).FavoriteArtist = 0
+	(*data).Password = ""
+	(*data).NickName = ""
+	(*data).Email = ""
 }
 
 func SignUp(c *gin.Context) {
@@ -77,5 +83,6 @@ func SignUp(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	filterStruct(&user)
 	c.Set("user", &user)
 }
