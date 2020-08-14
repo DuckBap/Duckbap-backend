@@ -34,11 +34,28 @@ var doc = `{
                     "application/json"
                 ],
                 "summary": "회원가입 요청이 들어왔을 때 동작하는 곳",
+                "parameters": [
+                    {
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.InputUserData"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "token",
                         "schema": {
                             "type": ""
+                        },
+                        "headers": {
+                            "user": {
+                                "type": "object",
+                                "description": "token"
+                            }
                         }
                     },
                     "208": {
@@ -126,6 +143,29 @@ var doc = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.InputUserData": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "favoriteArtist": {
+                    "type": "integer"
+                },
+                "nickName": {
+                    "type": "string"
+                },
+                "password1": {
+                    "type": "string"
+                },
+                "password2": {
+                    "type": "string"
+                },
+                "userName": {
                     "type": "string"
                 }
             }

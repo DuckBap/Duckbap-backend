@@ -55,8 +55,16 @@ func	AnalyzeErrorMessage(message string) string {
 		errorPoint = "nickName"
 	} else if strings.Contains(message, "favorite_artist") {
 		errorPoint = "favoriteArtist"
+	} else if strings.Contains(message, "userName") {
+		errorPoint = "userName"
+	} else if strings.Contains(message, "email") {
+		errorPoint = "email"
+	} else if strings.Contains(message, "nickName") {
+		errorPoint = "nickName"
 	} else if strings.Contains(message, "favoriteArtist") {
 		errorPoint = "favoriteArtist"
+	} else {
+		errorPoint = "error"
 	}
 	return errorPoint
 }
