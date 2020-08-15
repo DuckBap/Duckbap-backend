@@ -17,7 +17,9 @@ type listFunding struct {
 	MainImgUrl      string
 	ArtistID        uint    `json:"-"`
 	SalesAmount     uint    `json:"-"`
+	EndDate			time.Time
 	AchievementRate float64 `json:"achievementRate"`
+	SellerID		uint
 }
 
 type bannerFunding struct {
@@ -38,6 +40,10 @@ type itemList struct {
 	ID              uint
 	MainImgUrl      string `gorm:"varchar(255); unique; not null"`
 	NickName        string
+}
+
+type seller struct {
+	NickName	string
 }
 
 // @Summary 메인 배너에서 보여줄 펀딩 리스트
@@ -80,7 +86,9 @@ func ListSelect(c *gin.Context, id uint) {
 	var tmp []listFunding
 	var temp bookmarks
 	var pagenum int
+	var nickname_tmp []seller
 
+	returnvalue := make([]itemList, 8)
 	page, exist := c.GetQuery("page")
 	if exist {
 		pagenum, _ = strconv.Atoi(page)
@@ -142,8 +150,20 @@ func ListSelect(c *gin.Context, id uint) {
 		int_rate := int(tmp_rate)
 		fundings[i].AchievementRate = float64(int_rate) / 100
 	}
+	for i:=0; i<8; i++ {
+		returnvalue[i].AchievementRate = fundings[i].AchievementRate
+		returnvalue[i].Dday = time.Duration(fundings[i].EndDate.Day() - time.Now().Day())
+		returnvalue[i].Name = fundings[i].Name
+		returnvalue[i].ID = fundings[i].ID
+		returnvalue[i].MainImgUrl = fundings[i].MainImgUrl
+		configs.DB.Table("users").Select("nick_name").Where("id = ?", fundings[i].SellerID).Find(&nickname_tmp)
+		returnvalue[i].NickName = nickname_tmp[0].NickName
+	}
+	//for i:=0; i<8; i++ {
+	//	returnvalue[i].NickName = nickname_tmp[i].NickName
+	//}
 	c.JSON(http.StatusOK, gin.H{
-		"data": fundings,
+		"data": returnvalue,
 	})
 }
 
