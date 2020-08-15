@@ -66,6 +66,7 @@ func BannerSelect(c *gin.Context) {
 // @Produce  json
 // @Router /fundings/main [get]
 // @Success 200 {array} listFunding
+// @Failure 404 {} string ""해당 페이지에 대한 값을 찾을 수 없을 때, "{"err": "해당 값을 찾을 수 없습니다."}"
 func ListSelect(c *gin.Context, id uint) {
 	var bookmark []bookmarks
 	type Test struct {
