@@ -6,12 +6,14 @@ import (
 	"math"
 	"net/http"
 	"sort"
+	"strconv"
+	"time"
 )
 
 type listFunding struct {
 	ID              uint
 	Name            string
-	TargetAmount    uint	`json:"-"`
+	TargetAmount    uint `json:"-"`
 	MainImgUrl      string
 	ArtistID        uint    `json:"-"`
 	SalesAmount     uint    `json:"-"`
@@ -30,17 +32,19 @@ type bookmarks struct {
 }
 
 type itemList struct {
+	AchievementRate float64       `json:"achievementRate"`
+	Dday            time.Duration `json:"dDay"`
+	Name            string        `gorm:"varchar(150);not null;"`
 	ID              uint
-	MainImgUrl      string  `gorm:"varchar(255); unique; not null"`
-	Name            string  `gorm:"varchar(150);not null;"`
-	AchievementRate float64 `json:"achievementRate"`
+	MainImgUrl      string `gorm:"varchar(255); unique; not null"`
+	UserName        string
 }
 
 func BannerSelect(c *gin.Context) {
 	var fundings []bannerFunding
 
 	configs.DB.Table("fundings").Order("sales_amount desc").Limit(5).Find(&fundings)
-	c.JSON(http.StatusOK, gin.H {
+	c.JSON(http.StatusOK, gin.H{
 		"data": fundings,
 	})
 }
@@ -77,25 +81,32 @@ func ListSelect(c *gin.Context, id uint) {
 		int_rate := int(tmp_rate)
 		fundings[i].AchievementRate = float64(int_rate) / 100
 	}
-	c.JSON(http.StatusOK, gin.H {
+	c.JSON(http.StatusOK, gin.H{
 		"data": fundings,
 	})
 }
 
+type test struct {
+	Dday time.Duration
+}
+
 func NotloginListSelect(c *gin.Context) {
+	temp, _ := c.GetQuery("limit")
+	limit, _ := strconv.Atoi(temp)
 	var list []itemList
 
-	configs.DB.Raw("select id, main_img_url, name, (@achievement_rate:=truncate(100 * sales_amount/target_amount,2))achievement_rate " +
-						"from (" +
-								"select f.*," +
-										"(case @vartist when f.artist_id then @rownum:=@rownum+1 else @rownum:=1 end)rnum," +
-										"(@vartist:=f.artist_id)vartist " +
-								"from(" +
-										"select * " +
-										"from fundings order by artist_id, sales_amount desc)f," +
-											"(select @vartist:='',@rownum:=0 from dual)b)e " +
-						"where rnum <= 2 order by sales_amount desc limit 8").Scan(&list)
-	c.JSON(http.StatusOK, gin.H {
+	configs.DB.Raw("select (@achievement_rate:=truncate(100 * sales_amount/target_amount,2))achievement_rate, " +
+		"(@Dday:=datediff(end_date,now()))Dday, id, name, main_img_url  "+
+		"from ("+
+		"select f.*,"+
+		"(case @vartist when f.artist_id then @rownum:=@rownum+1 else @rownum:=1 end)rnum,"+
+		"(@vartist:=f.artist_id)vartist "+
+		"from("+
+		"select * "+
+		"from fundings order by artist_id, sales_amount desc)f,"+
+		"(select @vartist:='',@rownum:=0 from dual)b)e "+
+		"where rnum <= 2 order by sales_amount desc limit ?, ?", limit, 3).Scan(&list)
+	c.JSON(http.StatusOK, gin.H{
 		"data": list,
 	})
 }
