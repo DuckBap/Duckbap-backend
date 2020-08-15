@@ -167,6 +167,12 @@ func NotloginListSelect(c *gin.Context) {
 						")e "+
 						"left join users on seller_id = users.id " +
 						"where rnum <= 2 order by sales_amount desc limit ?, ?", limit, 8).Scan(&list)
+	if list == nil || len(list) == 0 {
+		c.JSON(http.StatusNotFound, gin.H {
+			"err": "해당 데이터를 찾을 수 없습니다.",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data": list,
 	})
