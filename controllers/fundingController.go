@@ -176,22 +176,6 @@ func isArtistExist(artistID uint) bool {
 
 }
 
-type fundingstringBody struct {
-	ID              uint     `json:"id"`
-	NickName        string   `json:"sellerName"`
-	Name            string   `json:"fundName"`
-	Price           uint     `json:"price"`
-	TargetAmount    uint     `json:"targetAmount"`
-	SalesAmount     uint     `json:"salesAmount"`
-	StartDate       string   `json:"startDate"`
-	EndDate         string   `json:"endDate"`
-	ArtistName      string   `json:"artistName"`
-	AchievementRate float64  `json:"achievementRate"` //salesAmount / Price
-	Dday            uint     `json:"dDay"`
-	FundingImgUrls  []string `json:"fundingImgUrls"`
-	DetailedImgUrl  string   `json:"detailedImgUrl"`
-}
-
 func CreateFund(c *gin.Context) {
 	var funding models.Funding
 	c.BindJSON(&funding)
