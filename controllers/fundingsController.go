@@ -105,7 +105,7 @@ func NotloginListSelect(c *gin.Context) {
 		"select * "+
 		"from fundings order by artist_id, sales_amount desc)f,"+
 		"(select @vartist:='',@rownum:=0 from dual)b)e "+
-		"where rnum <= 2 order by sales_amount desc limit ?, ?", limit, 3).Scan(&list)
+		"where rnum <= 2 order by sales_amount desc limit ?, ?", limit, 8).Scan(&list)
 	c.JSON(http.StatusOK, gin.H{
 		"data": list,
 	})
