@@ -98,14 +98,17 @@ func ListSelect(c *gin.Context, id uint) {
 	if len(bookmark) == 3 {
 		for i := 0; i < len(bookmark)-1; i++ {
 			configs.DB.Table("fundings").Where("artist_id = ?", bookmark[i].ArtistID).Order("sales_amount desc").Offset((limit-1) * pagenum).Limit(limit-1).Find(&tmp)
-			fundings = append(fundings, tmp...)
+			//fundings = append(fundings, tmp...)
+			addFundingList(&fundings, tmp)
 		}
 		configs.DB.Table("fundings").Where("artist_id = ?", bookmark[2].ArtistID).Order("sales_amount desc").Offset((limit+1) * pagenum).Limit(limit+1).Find(&tmp)
-		fundings = append(fundings, tmp...)
+		//fundings = append(fundings, tmp...)
+		addFundingList(&fundings, tmp)
 	} else {
 		for i := 0; i < len(bookmark); i++ {
 			configs.DB.Table("fundings").Where("artist_id = ?", bookmark[i].ArtistID).Order("sales_amount desc").Offset(limit * pagenum).Limit(limit).Find(&tmp)
-			fundings = append(fundings, tmp...)
+			//fundings = append(fundings, tmp...)
+			addFundingList(&fundings, tmp)
 		}
 	}
 	sort.Slice(fundings, func(i, j int) bool {
@@ -121,7 +124,14 @@ func ListSelect(c *gin.Context, id uint) {
 		//}
 		dup := setDuplicates(bookmark)
 		configs.DB.Table("fundings").Where("artist_id Not In (?)", dup).Order("sales_amount desc").Offset(pagenum * 8).Limit(8 - len(fundings)).Find(&tmp)
-		fundings = append(fundings, tmp...)
+		//fundings = append(fundings, tmp...)
+		addFundingList(&fundings, tmp)
+	}
+	if fundings == nil {
+		c.JSON(http.StatusNotFound, gin.H {
+			"err": "해당 데이터를 찾을 수 없습니다.",
+		})
+		return
 	}
 	for i, item := range fundings {
 		tmp_rate := float64(item.SalesAmount) / float64(item.TargetAmount) * 10000
@@ -158,4 +168,24 @@ func setDuplicates(bookmark []bookmarks) []uint {
 		dup = append(dup, bookmark[i].ArtistID)
 	}
 	return dup
+}
+
+func	addFundingList(list *[]listFunding, additionalList []listFunding) {
+
+	var	checker	bool
+	for _, item := range additionalList {
+		if len(*list) == 0 {
+			*list = append(*list, item)
+		} else {
+			for _, existItem := range *list {
+				if item == existItem {
+					checker = true
+					break
+				}
+			}
+			if !checker {
+				*list = append(*list, item)
+			}
+		}
+	}
 }
