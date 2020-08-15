@@ -173,31 +173,35 @@ type test struct {
 
 func NotloginListSelect(c *gin.Context) {
 	temp, _ := c.GetQuery("limit")
-	limit, _ := strconv.Atoi(temp)
-	var list []itemList
+	limit, err := strconv.Atoi(temp)
+	if err != nil {
+		c.JSON(http.StatusNotFound, "Not validate value")
+	} else {
+		var list []itemList
 
-	configs.DB.Raw("select (@achievement_rate:=truncate(100 * sales_amount/target_amount,2))achievement_rate, " +
-						"(@Dday:=datediff(end_date,now()))Dday, e.id, name, main_img_url, users.nick_name "+
-						"from ("+
-							"select f.*,"+
-								"(case @vartist when f.artist_id then @rownum:=@rownum+1 else @rownum:=1 end)rnum, "+
-								"(@vartist:=f.artist_id)vartist " +
-							"from(select * from fundings order by artist_id, sales_amount desc)f,"+
-								"(select @vartist:='',@rownum:=0 from dual)b" +
-						")e "+
-						"left join users on seller_id = users.id " +
-						"where rnum <= 2 order by sales_amount desc limit ?, ?", limit, 8).Scan(&list)
-	if list == nil || len(list) == 0 {
-		c.JSON(http.StatusNotFound, gin.H {
-			"err": "해당 데이터를 찾을 수 없습니다.",
+		configs.DB.Raw("select (@achievement_rate:=truncate(100 * sales_amount/target_amount,2))achievement_rate, "+
+			"(@Dday:=datediff(end_date,now()))Dday, e.id, name, main_img_url, users.nick_name "+
+			"from ("+
+			"select f.*,"+
+			"(case @vartist when f.artist_id then @rownum:=@rownum+1 else @rownum:=1 end)rnum, "+
+			"(@vartist:=f.artist_id)vartist "+
+			"from(select * from fundings order by artist_id, sales_amount desc)f,"+
+			"(select @vartist:='',@rownum:=0 from dual)b"+
+			")e "+
+			"left join users on seller_id = users.id "+
+			"where rnum <= 2 order by sales_amount desc limit ?, ?", limit, 8).Scan(&list)
+		//if list == nil || len(list) == 0 {
+		//	c.JSON(http.StatusNotFound, gin.H{
+		//		"err": "해당 데이터를 찾을 수 없습니다.",
+		//	})
+		//	return
+		//}
+		c.JSON(http.StatusOK, gin.H{
+			"data": list,
 		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"data": list,
-	})
-}
 
+	}
+}
 func setDuplicates(bookmark []bookmarks) []uint {
 	var dup []uint
 
