@@ -150,7 +150,7 @@ func ListSelect(c *gin.Context, id uint) {
 		int_rate := int(tmp_rate)
 		fundings[i].AchievementRate = float64(int_rate) / 100
 	}
-	for i:=0; i<8; i++ {
+	for i:=0; i<len(fundings); i++ {
 		returnvalue[i].AchievementRate = fundings[i].AchievementRate
 		returnvalue[i].Dday = time.Duration(fundings[i].EndDate.Day() - time.Now().Day())
 		returnvalue[i].Name = fundings[i].Name
