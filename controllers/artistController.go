@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/DuckBap/Duckbap-backend/configs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/gin-gonic/gin"
@@ -18,7 +17,6 @@ type OutputArtistList struct {
 
 func ShowArtists(c *gin.Context) {
 	id, _ := c.GetQuery("ent-id")
-	fmt.Println(id)
 	entId, _ := strconv.Atoi(id)
 	if entId != 0 {
 		EnterArtistList(c, entId)
