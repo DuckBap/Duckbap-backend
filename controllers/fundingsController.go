@@ -69,6 +69,7 @@ func BannerSelect(c *gin.Context) {
 // @Produce  json
 // @Router /fundings/main [get]
 // @Success 200 {array} listFunding
+// @Failure 404 {} string ""해당 페이지에 대한 값을 찾을 수 없을 때, "{"err": "해당 값을 찾을 수 없습니다."}"
 func ListSelect(c *gin.Context, id uint) {
 	var bookmark []bookmarks
 	type Test struct {
@@ -78,23 +79,63 @@ func ListSelect(c *gin.Context, id uint) {
 	var fundings []listFunding
 	var tmp []listFunding
 	var temp bookmarks
+	var pagenum int
 
+	page, exist := c.GetQuery("page")
+	if exist {
+		pagenum, _ = strconv.Atoi(page)
+		if pagenum < 0 {
+			c.JSON(http.StatusBadRequest, gin.H {
+				"msg": "page not exist",
+			})
+			c.Abort()
+			return
+		}
+	} else {
+		pagenum = 0
+	}
 	configs.DB.Table("bookmarks").Where("user_id = ?", id).Order("artist_id").Find(&bookmark)
 	configs.DB.Table("users").Select("favorite_artist").Where("id = ?", id).Find(&favorite)
 	temp.ArtistID = favorite.FavoriteArtist
 	bookmark = append(bookmark, temp)
 	limit := int(math.Ceil(8.0 / float64(len(bookmark))))
-	for i := 0; i < len(bookmark); i++ {
-		configs.DB.Table("fundings").Where("artist_id = ?", bookmark[i].ArtistID).Order("sales_amount desc").Limit(limit).Find(&tmp)
-		fundings = append(fundings, tmp...)
+	if len(bookmark) == 3 {
+		for i := 0; i < len(bookmark)-1; i++ {
+			configs.DB.Table("fundings").Where("artist_id = ?", bookmark[i].ArtistID).Order("sales_amount desc").Offset((limit-1) * pagenum).Limit(limit-1).Find(&tmp)
+			//fundings = append(fundings, tmp...)
+			addFundingList(&fundings, tmp)
+		}
+		configs.DB.Table("fundings").Where("artist_id = ?", bookmark[2].ArtistID).Order("sales_amount desc").Offset((limit+1) * pagenum).Limit(limit+1).Find(&tmp)
+		//fundings = append(fundings, tmp...)
+		addFundingList(&fundings, tmp)
+	} else {
+		for i := 0; i < len(bookmark); i++ {
+			configs.DB.Table("fundings").Where("artist_id = ?", bookmark[i].ArtistID).Order("sales_amount desc").Offset(limit * pagenum).Limit(limit).Find(&tmp)
+			//fundings = append(fundings, tmp...)
+			addFundingList(&fundings, tmp)
+		}
 	}
 	sort.Slice(fundings, func(i, j int) bool {
 		return fundings[i].SalesAmount > fundings[j].SalesAmount
 	})
 	if len(fundings) < 8 {
+		//if pagenum > 0 {
+		//	c.JSON(http.StatusBadRequest, gin.H {
+		//		"msg": "page not exist",
+		//	})
+		//	c.Abort()
+		//	return
+		//}
 		dup := setDuplicates(bookmark)
-		configs.DB.Table("fundings").Where("artist_id Not In (?)", dup).Order("sales_amount desc").Limit(8 - len(fundings)).Find(&tmp)
-		fundings = append(fundings, tmp...)
+		configs.DB.Table("fundings").Where("artist_id Not In (?)", dup).Order("sales_amount desc").Offset(pagenum * 8).Limit(8 - len(fundings)).Find(&tmp)
+		//fundings = append(fundings, tmp...)
+		addFundingList(&fundings, tmp)
+	}
+	if fundings == nil {
+		c.JSON(http.StatusNotFound, gin.H {
+			"err": "해당 데이터를 찾을 수 없습니다.",
+		})
+		return
 	}
 	for i, item := range fundings {
 		tmp_rate := float64(item.SalesAmount) / float64(item.TargetAmount) * 10000
@@ -138,4 +179,24 @@ func setDuplicates(bookmark []bookmarks) []uint {
 		dup = append(dup, bookmark[i].ArtistID)
 	}
 	return dup
+}
+
+func	addFundingList(list *[]listFunding, additionalList []listFunding) {
+
+	var	checker	bool
+	for _, item := range additionalList {
+		if len(*list) == 0 {
+			*list = append(*list, item)
+		} else {
+			for _, existItem := range *list {
+				if item == existItem {
+					checker = true
+					break
+				}
+			}
+			if !checker {
+				*list = append(*list, item)
+			}
+		}
+	}
 }

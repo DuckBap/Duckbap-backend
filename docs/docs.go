@@ -229,6 +229,12 @@ var doc = `{
                                 "$ref": "#/definitions/controllers.listFunding"
                             }
                         }
+                    },
+                    "404": {
+                        "description": "해당 페이지에 대한 값을 찾을 수 없을 때, \"{\"err\": \"해당 값을 찾을 수 없습니다.\"}",
+                        "schema": {
+                            "type": ""
+                        }
                     }
                 }
             }
