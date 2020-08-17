@@ -172,7 +172,7 @@ type test struct {
 }
 
 func NotloginListSelect(c *gin.Context) {
-	temp, _ := c.GetQuery("limit")
+	temp, _ := c.GetQuery("page")
 	limit, err := strconv.Atoi(temp)
 	if err != nil {
 		c.JSON(http.StatusNotFound, "Not validate value")
@@ -189,7 +189,7 @@ func NotloginListSelect(c *gin.Context) {
 			"(select @vartist:='',@rownum:=0 from dual)b"+
 			")e "+
 			"left join users on seller_id = users.id "+
-			"where rnum <= 2 order by sales_amount desc limit ?, ?", limit, 8).Scan(&list)
+			"where rnum <= 2 order by sales_amount desc limit ?, ?", limit * 8, 8).Scan(&list)
 		//if list == nil || len(list) == 0 {
 		//	c.JSON(http.StatusNotFound, gin.H{
 		//		"err": "해당 데이터를 찾을 수 없습니다.",
