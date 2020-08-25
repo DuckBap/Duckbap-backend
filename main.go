@@ -5,6 +5,7 @@ import (
 	"github.com/DuckBap/Duckbap-backend/docs"
 	"github.com/DuckBap/Duckbap-backend/models"
 	"github.com/DuckBap/Duckbap-backend/routers"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -34,6 +35,7 @@ func main() {
 		&models.Artist{}, &models.Receipt{}, &models.Entertainment{})
 
 	rGroup := r.Group("/v1")
+	rGroup.Use(cors.Default())
 	routers.SignUpRouter(rGroup.Group("/accounts"))
 	routers.SetUserRouters(rGroup.Group("/users"))
 	routers.SetArtistRouter(rGroup.Group("/artists"))
