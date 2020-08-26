@@ -17,6 +17,7 @@ import (
 func main() {
 	var err error
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	//개발용 로컬 디비 오픈
 	//configs.DB, err = gorm.Open(mysql.Open(configs.DbURL(configs.BuildDBConfig())), &gorm.Config{
@@ -35,7 +36,6 @@ func main() {
 	//	&models.Artist{}, &models.Receipt{}, &models.Entertainment{})
 
 	rGroup := r.Group("/v1")
-	r.Use(cors.Default())
 	routers.SignUpRouter(rGroup.Group("/accounts"))
 	routers.SetUserRouters(rGroup.Group("/users"))
 	routers.SetArtistRouter(rGroup.Group("/artists"))
