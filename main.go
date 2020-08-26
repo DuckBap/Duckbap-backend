@@ -35,7 +35,7 @@ func main() {
 	//	&models.Artist{}, &models.Receipt{}, &models.Entertainment{})
 
 	rGroup := r.Group("/v1")
-	rGroup.Use(cors.Default())
+	r.Use(cors.Default())
 	routers.SignUpRouter(rGroup.Group("/accounts"))
 	routers.SetUserRouters(rGroup.Group("/users"))
 	routers.SetArtistRouter(rGroup.Group("/artists"))
